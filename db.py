@@ -12,6 +12,7 @@ Connection strategy:
 import os
 import sqlite3
 import threading
+import time
 import uuid
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
@@ -33,9 +34,14 @@ DB_PATH = os.path.join(BASE_DIR, "examportal.db")
 
 PG_POOL_SIZE = int(os.environ.get("PG_POOL_SIZE", "4"))
 PG_POOL_MIN = int(os.environ.get("PG_POOL_MIN", "1"))
+PG_CONNECT_TIMEOUT = int(os.environ.get("PG_CONNECT_TIMEOUT", "5"))
+# While the database is down, fail fast instead of paying the connect
+# timeout on every single query.
+CONNECT_RETRY_DELAY = int(os.environ.get("PG_CONNECT_RETRY_DELAY", "10"))
 
 _local = threading.local()
 _pool = None
+_pool_error_at = 0.0
 _pool_lock = threading.Lock()
 
 
@@ -51,16 +57,37 @@ def _pg_dsn():
 
 
 def _get_pool():
-    global _pool
-    if _pool is None:
-        with _pool_lock:
-            if _pool is None:
-                import psycopg2
+    global _pool, _pool_error_at
+    if _pool is not None:
+        return _pool
+    with _pool_lock:
+        if _pool is not None:
+            return _pool
+        # The database is down or still provisioning - do not pay the
+        # connect timeout again for every query.
+        if time.time() - _pool_error_at < CONNECT_RETRY_DELAY:
+            raise RuntimeError("database temporarily unreachable")
+        try:
+            try:
+                # psycopg 3 (preferred): binary wheels exist for every
+                # current Python release.
+                import psycopg_pool
+                _pool = psycopg_pool.ThreadedConnectionPool(
+                    PG_POOL_MIN, PG_POOL_SIZE, _pg_dsn(),
+                    kwargs={"connect_timeout": PG_CONNECT_TIMEOUT},
+                    timeout=30,
+                )
+            except ImportError:
                 import psycopg2.pool
                 _pool = psycopg2.pool.ThreadedConnectionPool(
-                    PG_POOL_MIN, PG_POOL_SIZE, _pg_dsn(), connect_timeout=10
+                    PG_POOL_MIN, PG_POOL_SIZE, _pg_dsn(),
+                    connect_timeout=PG_CONNECT_TIMEOUT,
                 )
-    return _pool
+            _pool_error_at = 0.0
+            return _pool
+        except Exception:
+            _pool_error_at = time.time()
+            raise
 
 
 def _sqlite_conn():
@@ -233,6 +260,59 @@ def init_schema():
             pass
 
 
+def _schema_ready():
+    """True when the tables we need actually exist."""
+    try:
+        if IS_PG:
+            row = query_one(
+                "SELECT count(*) AS n FROM information_schema.tables "
+                "WHERE table_name IN ('registrations', 'attempts', 'exam_sessions')"
+            )
+            return row and row["n"] == 3
+        row = query_one(
+            "SELECT count(*) AS n FROM sqlite_master "
+            "WHERE type='table' AND name IN ('registrations', 'attempts', 'exam_sessions')"
+        )
+        return row and row["n"] == 3
+    except Exception:
+        return False
+
+
+def init_schema_robustly(sync_attempts=6, sync_delay=5, bg_attempts=60, bg_delay=5):
+    """Create the schema, tolerating a database that is still provisioning.
+
+    On Render the web service and its Postgres instance are created at the
+    same time, so the database is often not reachable for the first few
+    seconds. Failing the boot at that point would leave the service with no
+    server at all, so we retry briefly in the foreground and then keep
+    retrying in the background.
+    """
+    for attempt in range(sync_attempts):
+        try:
+            init_schema()
+            if _schema_ready():
+                SCHEMA_STATE["ready"] = True
+                return True
+        except Exception:
+            pass
+        if attempt < sync_attempts - 1:
+            time.sleep(sync_delay)
+
+    def _bg():
+        for _ in range(bg_attempts):
+            try:
+                init_schema()
+                if _schema_ready():
+                    SCHEMA_STATE["ready"] = True
+                    return
+            except Exception:
+                pass
+            time.sleep(bg_delay)
+
+    threading.Thread(target=_bg, daemon=True).start()
+    return False
+
+
 def new_sid():
     return uuid.uuid4().hex
 
@@ -243,6 +323,14 @@ def db_healthy():
         return True
     except Exception:
         return False
+
+
+SCHEMA_STATE = {"ready": False}
+
+
+def schema_status():
+    """'ready' once the tables exist, otherwise 'pending'."""
+    return "ready" if SCHEMA_STATE["ready"] else "pending"
 
 
 def cleanup_expired_sessions(max_age_hours=24):
@@ -258,4 +346,8 @@ def cleanup_expired_sessions(max_age_hours=24):
         pass
 
 
-init_schema()
+if IS_PG:
+    init_schema_robustly()
+else:
+    init_schema()
+    SCHEMA_STATE["ready"] = True

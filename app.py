@@ -271,12 +271,14 @@ def index_role():
 
 @app.route("/healthz")
 def healthz():
-    ok = db.db_healthy()
+    reachable = db.db_healthy()
+    schema = db.schema_status()
     return jsonify({
-        "status": "ok" if ok else "degraded",
+        "status": "ok" if reachable else "degraded",
+        "schema": schema,
         "database": "postgresql" if db.IS_PG else "sqlite",
         "workers": os.environ.get("WEB_CONCURRENCY", "1"),
-    }), (200 if ok else 503)
+    }), (200 if reachable else 503)
 
 
 @app.after_request

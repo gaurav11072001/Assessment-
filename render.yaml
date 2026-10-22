@@ -18,8 +18,11 @@ services:
     healthCheckPath: /healthz
     autoDeploy: true
     envVars:
+      # Render defaults to Python 3.14 for new services. psycopg has wheels
+      # for 3.14, but pinning to 3.13 keeps the build deterministic.
+      # Precedence: PYTHON_VERSION > dashboard > .python-version > runtime.txt
       - key: PYTHON_VERSION
-        value: "3.11.9"
+        value: "3.13.5"
       - key: DATABASE_URL
         fromDatabase:
           name: assessment-db
