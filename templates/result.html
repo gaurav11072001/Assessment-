@@ -24,30 +24,9 @@
             <div class="candidate-row"><span>Tab Warnings</span><strong class="{{ 'warn-text' if violations else '' }}">{{ violations }} / 3</strong></div>
         </div>
 
-        <div class="score-big">{{ percentage }}%</div>
-        <div class="score-label">{{ correct }} / {{ total }} correct</div>
-
-        <div class="breakdown">
-            <h3>Section-wise Performance</h3>
-            <table>
-                <thead>
-                    <tr><th>Section</th><th>Correct</th><th>Total</th><th>Score</th></tr>
-                </thead>
-                <tbody>
-                    {% for cat, data in breakdown.items() %}
-                    <tr>
-                        <td>{{ ROLES.get(cat, cat.title()) }}</td>
-                        <td>{{ data.correct }}</td>
-                        <td>{{ data.total }}</td>
-                        <td>{{ "%.0f"|format((data.correct/data.total)*100) if data.total else 0 }}%</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <div class="result-actions">
-            <a href="{{ url_for('index') }}" class="btn-outline">Retake Test</a>
+        <div class="submitted-notice">
+            <strong>Responses submitted successfully</strong>
+            <span>Your answers are recorded. The result will be reviewed and shared by the administrator.</span>
         </div>
     </div>
 </section>
@@ -90,6 +69,20 @@
 }
 .lock-notice strong { color: #c2410c; font-size: 0.98rem; }
 .lock-notice span { color: #9a3412; font-size: 0.85rem; }
+
+.submitted-notice {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-left: 4px solid #2563eb;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    text-align: left;
+}
+.submitted-notice strong { color: #1d4ed8; font-size: 1rem; }
+.submitted-notice span { color: #475569; font-size: 0.9rem; line-height: 1.5; }
 
 @media (max-width: 640px) {
     .candidate { grid-template-columns: 1fr; }
