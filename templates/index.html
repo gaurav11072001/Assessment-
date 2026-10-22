@@ -42,33 +42,7 @@
                 20 Aptitude + 20 Reasoning + 20 Role-Specific
             </p>
 
-            <div class="branch-grid">
-                <div class="branch-card" data-role="embedded">
-                    <div class="branch-icon">⚡</div>
-                    <div class="branch-name">Embedded</div>
-                    <div class="branch-desc">Microcontrollers · RTOS · C · Hardware</div>
-                </div>
-                <div class="branch-card" data-role="python">
-                    <div class="branch-icon">🐍</div>
-                    <div class="branch-name">Python Developer</div>
-                    <div class="branch-desc">OOP · Data Structures · Scripting</div>
-                </div>
-                <div class="branch-card" data-role="cs">
-                    <div class="branch-icon">💻</div>
-                    <div class="branch-name">Computer Science</div>
-                    <div class="branch-desc">Algorithms · OS · Networks</div>
-                </div>
-                <div class="branch-card" data-role="mech">
-                    <div class="branch-icon">⚙️</div>
-                    <div class="branch-name">Mechanical</div>
-                    <div class="branch-desc">Design · Thermodynamics · CAD</div>
-                </div>
-            <div class="branch-card" data-role="it">
-                <div class="branch-icon">🌐</div>
-                <div class="branch-name">Information Tech</div>
-                <div class="branch-desc">Systems · Security · Databases</div>
-            </div>
-        </div>
+
 
             <div class="stats-grid">
                 <div class="stat">
@@ -231,57 +205,7 @@
     margin: 0 0.5rem;
 }
 
-/* ---- Branch cards ---- */
-.branch-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-    margin-bottom: 2rem;
-}
-.branch-card {
-    background: #ffffff;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 14px;
-    padding: 1.35rem 1rem;
-    text-align: center;
-    transition: all 0.25s;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-}
-.branch-card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(37,99,235,0.05), rgba(245,158,11,0.05));
-    opacity: 0;
-    transition: opacity 0.25s;
-}
-.branch-card:hover {
-    transform: translateY(-4px);
-    border-color: #2563eb;
-    box-shadow: 0 12px 32px rgba(37,99,235,0.12);
-}
-.branch-card:hover::before {
-    opacity: 1;
-}
-.branch-icon {
-    font-size: 1.9rem;
-    margin-bottom: 0.5rem;
-    display: block;
-}
-.branch-name {
-    font-size: 1rem;
-    font-weight: 800;
-    color: #2c3e50;
-    margin-bottom: 0.25rem;
-}
-.branch-desc {
-    font-size: 0.78rem;
-    color: #64748b;
-}
-
-/* ---- Stats ---- */
+ /* ---- Stats ---- */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -332,15 +256,11 @@
 }
 
 @media (max-width: 900px) {
-    .branch-grid { grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
-    .branch-card { padding: 1rem 0.75rem; }
 }
 @media (max-width: 700px) {
-    .branch-grid { grid-template-columns: repeat(2, 1fr); }
     .stats-grid { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
 }
 @media (max-width: 500px) {
-    .branch-grid { grid-template-columns: 1fr; }
     .stats-grid { grid-template-columns: 1fr; }
     .logo-img { width: 200px; }
 }
