@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: assessment
+    runtime: python
+    plan: standard
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --config gunicorn.conf.py
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: assessment-db
+          property: connectionString
+      - key: EXAMPORTAL_SECRET
+        generateValue: true
+      - key: ADMIN_USER
+        sync: false
+      - key: ADMIN_PASSWORD
+        generateValue: true
+      - key: WEB_CONCURRENCY
+        value: "4"
+      - key: WEB_THREADS
+        value: "8"
+      - key: PG_POOL_SIZE
+        value: "4"
+      - key: COOKIE_SECURE
+        value: "1"
+
+databases:
+  - name: assessment-db
+    databaseName: assessment
+    user: assessment
+    plan: free
