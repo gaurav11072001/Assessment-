@@ -8,8 +8,7 @@ import time
 
 import requests
 
-HOSTS = ["https://assessment.onrender.com",
-         "https://assessment-6i1jb.onrender.com"]
+HOSTS = ["https://assessment-61j8.onrender.com"]
 
 BASE = None
 for h in HOSTS:
