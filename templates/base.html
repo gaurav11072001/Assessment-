@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Aptitude & Reasoning Test{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="{{ url_for('index') }}" class="nav-brand">
+            <img src="{{ url_for('static', filename='examportal-logo.svg') }}" alt="EXAMPORTAL" class="nav-logo">
+        </a>
+        <div class="nav-right">
+            {% if session.get('student_name') %}
+            <span class="nav-user" title="{{ session.get('student_email', '') }}">{{ session.get('student_name') }}</span>
+            {% endif %}
+            <a href="{{ url_for('reset') }}" class="nav-reset">Start Over</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <span>&copy; 2026 ExamPortal | Aptitude + Reasoning Assessment</span>
+            <a href="{{ url_for('admin_login') }}" class="footer-admin">Admin</a>
+        </div>
+    </footer>
+
+    <script>
+        // Global copy / paste / print protection
+        ['copy', 'cut', 'paste', 'contextmenu'].forEach(function (evt) {
+            document.addEventListener(evt, function (e) { e.preventDefault(); }, true);
+        });
+        document.addEventListener('keydown', function (e) {
+            var k = (e.key || '').toLowerCase();
+            if ((e.ctrlKey || e.metaKey) && ['c', 'x', 'a', 's', 'p', 'u'].indexOf(k) !== -1) {
+                e.preventDefault();
+            }
+        });
+        window.onbeforeprint = function () { return false; };
+    </script>
+</body>
+</html>

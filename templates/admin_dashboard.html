@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard | ExamPortal{% endblock %}
+
+{% block content %}
+<section class="admin-dash">
+
+    <div class="admin-topbar">
+        <div>
+            <h1>Admin Dashboard</h1>
+            <p class="admin-sub">All candidate registrations and submitted examination results.</p>
+        </div>
+        <div class="admin-actions">
+            <a href="{{ url_for('index') }}" class="btn-outline btn-sm">View Site</a>
+            <a href="{{ url_for('admin_logout') }}" class="btn-outline btn-sm">Logout</a>
+        </div>
+    </div>
+
+    <div class="admin-stats">
+        <div class="astat">
+            <div class="astat-value">{{ total_students }}</div>
+            <div class="astat-label">Registered Students</div>
+        </div>
+        <div class="astat">
+            <div class="astat-value">{{ submitted }}</div>
+            <div class="astat-label">Exams Submitted</div>
+        </div>
+        <div class="astat">
+            <div class="astat-value">{{ pending }}</div>
+            <div class="astat-label">Awaiting Submission</div>
+        </div>
+        <div class="astat">
+            <div class="astat-value">{{ avg_score }}%</div>
+            <div class="astat-label">Average Score</div>
+        </div>
+    </div>
+
+    <div class="admin-card">
+        <h3 class="card-title">Submitted Results</h3>
+        {% if attempts %}
+        <div class="table-scroll">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Student</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Score</th>
+                        <th>Correct</th>
+                        <th>Warnings</th>
+                        <th>Time</th>
+                        <th>Submitted</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in attempts %}
+                    <tr>
+                        <td>{{ a.id }}</td>
+                        <td class="strong-cell">{{ a.full_name }}</td>
+                        <td class="muted-cell">{{ a.email }}</td>
+                        <td><span class="role-pill">{{ ROLES.get(a.role, a.role) }}</span></td>
+                        <td>
+                            <span class="score-pill {{ 'good' if a.percentage >= 60 else 'low' }}">{{ a.percentage }}%</span>
+                        </td>
+                        <td>{{ a.correct }}/{{ a.total }}</td>
+                        <td>
+                            {% if a.violations > 0 %}
+                            <span class="viol-pill">{{ a.violations }}/3</span>
+                            {% else %}
+                            <span class="muted-cell">0</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ (a.time_taken // 60) }}m {{ (a.time_taken % 60) }}s</td>
+                        <td class="muted-cell">{{ a.submitted_at }}</td>
+                        <td><a href="{{ url_for('admin_attempt', attempt_id=a.id) }}" class="view-link">View</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">No exam has been submitted yet.</div>
+        {% endif %}
+    </div>
+
+    <div class="admin-card">
+        <h3 class="card-title">All Registrations</h3>
+        {% if registrations %}
+        <div class="table-scroll">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Student</th>
+                        <th>Email</th>
+                        <th>Registered At</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in registrations %}
+                    <tr>
+                        <td>{{ r.id }}</td>
+                        <td class="strong-cell">{{ r.full_name }}</td>
+                        <td class="muted-cell">{{ r.email }}</td>
+                        <td class="muted-cell">{{ r.created_at }}</td>
+                        <td>
+                            {% set done = attempts | selectattr('email', 'equalto', r.email) | list %}
+                            {% if done %}
+                            <span class="status-pill done">Submitted</span>
+                            {% else %}
+                            <span class="status-pill pending">Pending</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">No students have registered yet.</div>
+        {% endif %}
+    </div>
+
+    <div class="admin-card danger-zone">
+        <h3 class="card-title">Danger Zone</h3>
+        <p class="dz-note">Permanently deletes every student registration and all submitted results. This cannot be undone.</p>
+        <form method="POST" action="{{ url_for('admin_reset') }}" onsubmit="return confirm('Delete ALL registrations and results? This cannot be undone.');">
+            <button type="submit" class="btn-danger">Reset All Data</button>
+        </form>
+    </div>
+</section>
+
+<style>
+.admin-dash { max-width: 1100px; margin: 0 auto; padding-bottom: 2rem; }
+
+.admin-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+}
+
+.admin-topbar h1 { font-size: 1.9rem; color: #2c3e50; }
+.admin-sub { color: #64748b; font-size: 0.9rem; margin-top: 0.2rem; }
+
+.admin-actions { display: flex; gap: 0.6rem; }
+.btn-sm { padding: 0.55rem 1.1rem; font-size: 0.85rem; }
+
+.admin-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.astat {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-top: 3px solid #2563eb;
+    border-radius: 10px;
+    padding: 1.1rem 1rem;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+}
+
+.astat:nth-child(2) { border-top-color: #ff9800; }
+.astat:nth-child(3) { border-top-color: #f59e0b; }
+.astat:nth-child(4) { border-top-color: #2c3e50; }
+
+.astat-value { font-size: 1.8rem; font-weight: 800; color: #2c3e50; }
+.astat-label { font-size: 0.78rem; color: #64748b; margin-top: 0.2rem; text-transform: uppercase; letter-spacing: 0.5px; }
+
+.admin-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+}
+
+.card-title { font-size: 1.1rem; color: #2c3e50; margin-bottom: 1rem; }
+
+.table-scroll { overflow-x: auto; }
+
+.admin-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+
+.admin-table th {
+    background: #f4f6f8;
+    color: #2c3e50;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    padding: 0.7rem 0.75rem;
+    text-align: left;
+    border-bottom: 2px solid #e2e8f0;
+    white-space: nowrap;
+}
+
+.admin-table td { padding: 0.7rem 0.75rem; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
+.admin-table tbody tr:hover { background: #f8fafc; }
+
+.strong-cell { font-weight: 700; color: #1a202c; }
+.muted-cell { color: #64748b; }
+
+.role-pill {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.score-pill {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    font-weight: 800;
+    font-size: 0.8rem;
+}
+.score-pill.good { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+.score-pill.low { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+.viol-pill {
+    background: #fff7ed;
+    color: #c2410c;
+    border: 1px solid #fdba74;
+    padding: 0.2rem 0.55rem;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.78rem;
+}
+
+.status-pill { padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+.status-pill.done { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+.status-pill.pending { background: #fff7ed; color: #c2410c; border: 1px solid #fdba74; }
+
+.view-link {
+    color: #2563eb;
+    font-weight: 700;
+    text-decoration: none;
+    font-size: 0.85rem;
+}
+.view-link:hover { text-decoration: underline; }
+
+.empty-state {
+    padding: 2rem;
+    text-align: center;
+    color: #94a3b8;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 10px;
+    font-size: 0.9rem;
+}
+
+.danger-zone { border-color: #fecaca; background: #fffbfb; }
+.dz-note { font-size: 0.85rem; color: #b91c1c; margin-bottom: 0.9rem; }
+
+.btn-danger {
+    background: #dc2626;
+    color: #fff;
+    border: none;
+    padding: 0.7rem 1.4rem;
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 0.88rem;
+    cursor: pointer;
+}
+.btn-danger:hover { background: #b91c1c; }
+
+@media (max-width: 900px) {
+    .admin-stats { grid-template-columns: 1fr 1fr; }
+}
+</style>
+{% endblock %}

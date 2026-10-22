@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Select Role | DoxPro Robotics{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-card">
+        <h1>Aptitude + Reasoning Test</h1>
+        <p class="sub">Choose your role to begin a 60-question assessment: 20 Aptitude + 20 Reasoning + 20 Role-Specific.</p>
+
+        {% if session.get('student_name') %}
+        <div class="reg-existing" style="max-width: 420px; margin: 0 auto 1.5rem;">
+            Registered as <strong>{{ session.get('student_name') }}</strong> ({{ session.get('student_email') }}) &mdash; 1 hour timer, 3-strike tab monitoring.
+        </div>
+        {% else %}
+        <div class="reg-existing" style="max-width: 420px; margin: 0 auto 1.5rem; background: #fff3e0; border-color: #ffe0b2; color: #c2410c;">
+            Please <a href="{{ url_for('register') }}" style="color:#c2410c; font-weight:800;">register first</a> with your full name and email before starting the exam.
+        </div>
+        {% endif %}
+
+        <div class="role-grid">
+            {% for key, label in roles.items() %}
+            <a href="{{ url_for('start', role=key) }}" class="role-card">
+                <div class="role-icon">{{ "E" if key == 'embedded' else "P" }}</div>
+                <div class="role-name">{{ label }}</div>
+                <div class="role-desc">{{ "Microcontrollers, RTOS, C & Hardware" if key == 'embedded' else "Python, OOP, Data Structures & Scripting" }}</div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

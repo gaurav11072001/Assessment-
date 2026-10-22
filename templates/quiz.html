@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+
+{% block title %}Exam | ExamPortal{% endblock %}
+
+{% block content %}
+<section class="quiz-wrap">
+
+    <div class="violation-banner" id="violationBanner" hidden>
+        <div class="vb-icon">&#9888;</div>
+        <div class="vb-text">
+            <strong id="violationText">Tab switching detected!</strong>
+            <span>Leaving this window is not allowed. Warnings used: <b id="violationCount">{{ violations }}</b>/{{ max_violations }}. At {{ max_violations }} warnings your exam will be submitted automatically.</span>
+        </div>
+    </div>
+
+    <div class="quiz-header">
+        <div class="progress">
+            <div class="cat-badge">{{ progress.cat_label }}</div>
+            <div class="q-counter">Question {{ progress.q_num }} of {{ progress.q_total }}</div>
+            <div class="cat-counter">Section {{ progress.cat_index + 1 }} of {{ progress.cat_total }}</div>
+            <div class="student-chip">{{ student_name }}</div>
+        </div>
+        <div class="timer-wrap">
+            <div class="timer-label">Time Remaining</div>
+            <div class="timer" id="timer" data-remaining="{{ remaining }}">--:--:--</div>
+        </div>
+    </div>
+
+    <form method="POST" class="quiz-form" id="examForm">
+        <div class="question-card">
+            <div class="question-text">{{ question.q }}</div>
+            <div class="options">
+                {% for opt in question.options %}
+                <label class="option">
+                    <input type="radio" name="answer" value="{{ opt }}">
+                    <span class="option-text">{{ opt }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="quiz-actions">
+            <button type="submit" class="btn-submit">Next Question</button>
+        </div>
+    </form>
+
+    <form method="POST" action="{{ url_for('submit') }}" id="submitForm"></form>
+
+    <div class="submit-row">
+        <button type="button" class="btn-outline" onclick="document.getElementById('submitForm').submit();">Submit Exam Now</button>
+        <span class="submit-note">Submitting early ends the test. Unanswered questions count as incorrect.</span>
+    </div>
+</section>
+
+<script>
+(function () {
+    var MAX = {{ max_violations }};
+    var timerEl = document.getElementById('timer');
+    var banner = document.getElementById('violationBanner');
+    var countEl = document.getElementById('violationCount');
+    var textEl = document.getElementById('violationText');
+    var submitForm = document.getElementById('submitForm');
+    var violations = {{ violations }};
+    var lastViolation = 0;
+
+    function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+    // ---------- Timer (1 hour) ----------
+    var remaining = parseInt(timerEl.getAttribute('data-remaining'), 10) || 0;
+
+    function renderTime() {
+        var h = Math.floor(remaining / 3600);
+        var m = Math.floor((remaining % 3600) / 60);
+        var s = remaining % 60;
+        timerEl.textContent = pad(h) + ':' + pad(m) + ':' + pad(s);
+        timerEl.classList.toggle('danger', remaining <= 300);
+    }
+
+    renderTime();
+
+    setInterval(function () {
+        remaining--;
+        if (remaining <= 0) {
+            remaining = 0;
+            renderTime();
+            timerEl.textContent = '00:00:00';
+            autoSubmit('Time is up. Your exam has been submitted automatically.');
+            return;
+        }
+        renderTime();
+    }, 1000);
+
+    // ---------- Tab switch / focus monitoring ----------
+    function reportViolation() {
+        var now = Date.now();
+        if (now - lastViolation < 1500) { return; }
+        lastViolation = now;
+
+        violations++;
+        countEl.textContent = violations;
+        banner.hidden = false;
+        textEl.textContent = 'Warning ' + violations + ' of ' + MAX + ': Tab switching detected!';
+
+        fetch('{{ url_for("violation") }}', { method: 'POST' })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.auto_submit) {
+                    autoSubmit('Maximum warnings reached (' + MAX + '). Your exam has been submitted automatically.');
+                }
+            })
+            .catch(function () {});
+    }
+
+    document.addEventListener('visibilitychange', function () {
+        if (document.hidden) { reportViolation(); }
+    });
+
+    window.addEventListener('blur', function () { reportViolation(); });
+
+    // ---------- Auto submit ----------
+    var submitting = false;
+    function autoSubmit(message) {
+        if (submitting) { return; }
+        submitting = true;
+        banner.hidden = false;
+        textEl.textContent = message;
+        banner.classList.add('final');
+        submitForm.submit();
+    }
+
+    // ---------- Copy / paste / print protection ----------
+    ['copy', 'cut', 'paste', 'contextmenu', 'dragstart'].forEach(function (evt) {
+        document.addEventListener(evt, function (e) {
+            if (document.body.contains(e.target)) { e.preventDefault(); }
+        }, true);
+    });
+
+    document.addEventListener('keydown', function (e) {
+        var k = (e.key || '').toLowerCase();
+        if ((e.ctrlKey || e.metaKey) && ['c', 'x', 'a', 's', 'p', 'u'].indexOf(k) !== -1) {
+            e.preventDefault();
+        }
+        if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['i', 'j', 'c'].indexOf(k) !== -1)) {
+            e.preventDefault();
+        }
+    });
+
+    window.onbeforeprint = function () { return false; };
+})();
+</script>
+
+<style>
+.student-chip {
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #2c3e50;
+    background: #f4f6f8;
+    border: 1px solid #e2e8f0;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+}
+
+.timer-wrap { text-align: right; }
+
+.timer-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 0.25rem;
+}
+
+.timer {
+    font-size: 1.3rem;
+    font-weight: 800;
+    font-family: 'Courier New', monospace;
+    color: #f57c00;
+    background: #fff3e0;
+    padding: 0.4rem 1rem;
+    border-radius: 10px;
+    border: 1px solid #ffe0b2;
+    white-space: nowrap;
+    transition: all 0.3s;
+}
+
+.timer.danger {
+    color: #b91c1c;
+    background: #fef2f2;
+    border-color: #fecaca;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.55; } }
+
+.violation-banner {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    background: #fff7ed;
+    border: 1px solid #fdba74;
+    border-left: 5px solid #f57c00;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+.violation-banner.final {
+    background: #fef2f2;
+    border-color: #fecaca;
+    border-left-color: #dc2626;
+}
+
+.vb-icon { font-size: 1.5rem; line-height: 1.2; }
+
+.vb-text { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.9rem; color: #7c2d12; }
+.vb-text strong { color: #c2410c; font-size: 1rem; }
+.vb-text span { color: #9a3412; font-size: 0.85rem; }
+
+.submit-row {
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.submit-note { font-size: 0.8rem; color: #64748b; }
+
+/* Copy protection on question content */
+.question-text, .option-text {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+@media (max-width: 640px) {
+    .quiz-header { flex-direction: column; align-items: stretch; }
+    .timer-wrap { text-align: left; }
+}
+</style>
+{% endblock %}

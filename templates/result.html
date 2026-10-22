@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Result | ExamPortal{% endblock %}
+
+{% block content %}
+<section class="result-wrap">
+    <div class="result-card">
+        <div class="result-header">
+            <h1>Assessment Complete</h1>
+            <div class="role-tag">{{ role }}</div>
+        </div>
+
+        {% if already_submitted %}
+        <div class="lock-notice">
+            <strong>Exam already submitted</strong>
+            <span>This exam has been recorded permanently. You cannot take it again.</span>
+        </div>
+        {% endif %}
+
+        <div class="candidate">
+            <div class="candidate-row"><span>Candidate</span><strong>{{ student_name }}</strong></div>
+            <div class="candidate-row"><span>Email</span><strong>{{ student_email }}</strong></div>
+            <div class="candidate-row"><span>Time Taken</span><strong>{{ (time_taken // 60) }}m {{ (time_taken % 60) }}s</strong></div>
+            <div class="candidate-row"><span>Tab Warnings</span><strong class="{{ 'warn-text' if violations else '' }}">{{ violations }} / 3</strong></div>
+        </div>
+
+        <div class="score-big">{{ percentage }}%</div>
+        <div class="score-label">{{ correct }} / {{ total }} correct</div>
+
+        <div class="breakdown">
+            <h3>Section-wise Performance</h3>
+            <table>
+                <thead>
+                    <tr><th>Section</th><th>Correct</th><th>Total</th><th>Score</th></tr>
+                </thead>
+                <tbody>
+                    {% for cat, data in breakdown.items() %}
+                    <tr>
+                        <td>{{ ROLES.get(cat, cat.title()) }}</td>
+                        <td>{{ data.correct }}</td>
+                        <td>{{ data.total }}</td>
+                        <td>{{ "%.0f"|format((data.correct/data.total)*100) if data.total else 0 }}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="result-actions">
+            <a href="{{ url_for('index') }}" class="btn-outline">Retake Test</a>
+        </div>
+    </div>
+</section>
+
+<style>
+.candidate {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+    text-align: left;
+    margin-bottom: 1.75rem;
+    background: #f4f6f8;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+}
+
+.candidate-row { display: flex; flex-direction: column; gap: 0.1rem; }
+.candidate-row span {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #64748b;
+}
+.candidate-row strong { font-size: 0.95rem; color: #2c3e50; word-break: break-word; }
+.warn-text { color: #dc2626; }
+
+.lock-notice {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    background: #fff7ed;
+    border: 1px solid #fdba74;
+    border-left: 4px solid #f57c00;
+    border-radius: 10px;
+    padding: 0.85rem 1.25rem;
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+.lock-notice strong { color: #c2410c; font-size: 0.98rem; }
+.lock-notice span { color: #9a3412; font-size: 0.85rem; }
+
+@media (max-width: 640px) {
+    .candidate { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
