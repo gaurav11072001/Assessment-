@@ -30,7 +30,7 @@ services:
       - key: EXAMPORTAL_SECRET
         generateValue: true
       - key: ADMIN_USER
-        sync: false
+        value: "admin"
       - key: ADMIN_PASSWORD
         generateValue: true
       # 2 workers x 8 threads = 16 concurrent handlers (free tier is 512 MB)
@@ -38,7 +38,8 @@ services:
         value: "2"
       - key: WEB_THREADS
         value: "8"
-      # Free Postgres allows 5 connections; stay under that.
+      # Render Postgres allows 100 connections on a <8 GB plan, so a pool of
+      # 4 per worker (8 total across 2 workers) is comfortably within it.
       - key: PG_POOL_SIZE
         value: "4"
       - key: PG_POOL_MIN

@@ -172,7 +172,7 @@ budget). Real exam load is only ~3 requests/second.
 | Free Postgres expires **30 days after creation** (14-day grace, then deleted) | Results deleted if the DB is old | Create the DB in the same week as the exam, or upgrade to $6/mo |
 | 750 free instance hours/month | A 1-hour exam uses ~1 hour | No problem |
 | 5 GB bandwidth/month included | 70 students ≈ 60 MB of traffic | No problem |
-| 5 DB connections | Pool is capped at 4 (`PG_POOL_SIZE`) | Already handled |
+| 100 DB connections (<8 GB plan) | Pool is capped at 4 per worker (8 total) | Already handled |
 | No SLA; Render advises against production use | If Render has an incident, candidates are blocked | Have a backup plan (see below) |
 
 ### During the exam the instance stays awake
@@ -237,7 +237,20 @@ That is **$13/month** for a reliable exam, or **$0** with the mitigations above.
 | Field | Value |
 |---|---|
 | Username | `admin` |
-| Password | `admin123` |
+| Password | **Set in Render, not in the repo** |
+
+`render.yaml` sets `ADMIN_PASSWORD` with `generateValue: true`, so Render
+generates a random password at deploy time and stores it in the service's
+Environment tab. To see or change it:
+
+> Render dashboard -> `assessment` -> **Environment** -> `ADMIN_PASSWORD`
+
+Click **Edit**, type your own password (or reveal the generated one), and
+**Save Changes**. That triggers a redeploy. The app logs a warning at startup
+if the credentials are still the built-in defaults.
+
+Local development falls back to `admin` / `admin123` when the environment
+variables are unset.
 
 Override with environment variables (`ADMIN_USER` / `ADMIN_PASSWORD`).
 
