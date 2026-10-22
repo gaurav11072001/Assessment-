@@ -91,38 +91,6 @@ body {
 
 .container { max-width: 1000px; margin: 0 auto; padding: 2rem 1rem; }
 
-.footer {
-    text-align: center;
-    padding: 1.5rem;
-    color: var(--muted);
-    font-size: 0.85rem;
-    border-top: 1px solid var(--border);
-    background: var(--gray);
-}
-
-.footer-inner {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
-
-.footer-admin {
-    color: var(--charcoal);
-    font-weight: 700;
-    text-decoration: none;
-    border: 1px solid var(--border);
-    background: var(--white);
-    padding: 0.25rem 0.7rem;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.footer-admin:hover { background: var(--charcoal); color: var(--white); }
-
 /* Hero / Role selection */
 .hero { padding: 3rem 1rem 4rem; }
 
