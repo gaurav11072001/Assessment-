@@ -269,6 +269,17 @@ def index_role():
     return render_template("old_index.html", roles=ROLES)
 
 
+@app.route("/ping")
+def ping():
+    """Cheap liveness probe for uptime monitors.
+
+    Deliberately does NOT touch the database: a transient database blip
+    must not make the uptime monitor report the site as down, and a monitor
+    hit every few minutes must not hold a connection open.
+    """
+    return jsonify({"ok": True, "service": "examportal"}), 200
+
+
 @app.route("/healthz")
 def healthz():
     reachable = db.db_healthy()

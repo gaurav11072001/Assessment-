@@ -195,6 +195,35 @@ curl https://your-app.onrender.com/healthz
 # 3. Open the admin panel and confirm the results table is loading
 ```
 
+### Keep the free instance awake (UptimeRobot)
+
+A free web service spins down after **15 minutes without inbound traffic** and
+then needs about a minute to start again. Pointing an uptime monitor at the
+service keeps it warm, because the monitor's pings count as traffic.
+
+1. Sign up at <https://uptimerobot.com> (free tier: 50 monitors, 5-minute interval)
+2. **Add New Monitor**
+   - Monitor Type: **HTTP(s)**
+   - Friendly Name: `ExamPortal`
+   - URL: `https://<your-service>.onrender.com/ping`
+   - Monitoring Interval: **5 minutes**
+3. Save. Within ~15 minutes the service stops sleeping.
+
+Use **`/ping`**, not `/healthz`:
+
+| Endpoint | Touches the database? | Use for |
+|---|---|---|
+| `/ping` | No | Uptime monitors, keep-alive pings |
+| `/healthz` | Yes | Manual diagnosis, Render's deploy health check |
+
+`/ping` returns 200 instantly and never queries Postgres, so a transient
+database blip cannot make the monitor report the site as down, and the
+monitor does not hold a database connection open.
+
+> Render's free tier is meant for hobby use and has no SLA. If the exam
+> matters, the $7/mo Starter plan removes the sleep entirely and is a better
+> fit than a keep-alive workaround.
+
 ### Optional: keep it warm throughout
 
 ```bash
@@ -269,6 +298,7 @@ Override with environment variables (`ADMIN_USER` / `ADMIN_PASSWORD`).
 | `POST` | `/violation` | Record a tab-switch warning |
 | `GET/POST` | `/submit` | Submit exam and record the attempt |
 | `GET` | `/result` | Student result |
+| `GET` | `/ping` | Cheap liveness probe (no DB) — use for uptime monitors |
 | `GET` | `/healthz` | Health / DB status probe |
 | `GET/POST` | `/admin/login` | Admin sign-in |
 | `GET` | `/admin` | Admin dashboard (admin only) |

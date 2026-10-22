@@ -8,8 +8,12 @@ Usage:
     python warmup.py https://your-app.onrender.com
     python warmup.py https://your-app.onrender.com --keep-alive 60
 
---keep-alive <seconds> pings every N seconds until interrupted (useful if
-the exam window is long and there may be quiet stretches).
+--keep-alive <seconds> pings every N seconds until interrupted. For a
+permanent solution, point an UptimeRobot monitor at /ping (every 5 minutes)
+instead - see the README.
+
+/ping is used rather than /healthz because it does not touch the database,
+so a transient database blip cannot make the monitor report the site down.
 """
 
 import argparse
@@ -38,10 +42,12 @@ def main():
                     help="ping every N seconds until Ctrl+C")
     ap.add_argument("--attempts", type=int, default=6,
                     help="how many times to retry while waking up")
+    ap.add_argument("--path", default="/ping",
+                    help="endpoint to hit (default /ping)")
     args = ap.parse_args()
 
     base = args.base_url.rstrip("/")
-    health = base + "/healthz"
+    health = base + args.path
 
     print("Waking up %s ..." % base)
     for i in range(1, args.attempts + 1):
@@ -51,7 +57,11 @@ def main():
         if status == 200:
             print("  attempt %d: %s in %.1fs -> %s" % (i, status, took, body.strip()))
             if args.keep_alive:
-                break
+                print("  keeping alive every %ds (Ctrl+C to stop)" % args.keep_alive)
+                while True:
+                    time.sleep(args.keep_alive)
+                    status, body = ping(health)
+                    print("  %s %s" % (time.strftime("%H:%M:%S"), status))
             print("\nInstance is awake and warm.")
             return 0
         print("  attempt %d: %s in %.1fs (%s)" % (i, status, took, body))
