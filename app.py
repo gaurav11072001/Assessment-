@@ -301,6 +301,13 @@ def set_cache_headers(response):
     return response
 
 
+if ADMIN_PASSWORD == "admin123" or ADMIN_USER == "admin":
+    app.logger.warning(
+        "ADMIN CREDENTIALS ARE DEFAULTS (user=%r). Set ADMIN_USER and "
+        "ADMIN_PASSWORD in the Render dashboard Environment tab before "
+        "running a real exam.", ADMIN_USER)
+
+
 # ==========================================================================
 # Registration / resume
 # ==========================================================================
