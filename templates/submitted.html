@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Exam Submitted | ExamPortal{% endblock %}
+
+{% block content %}
+<section class="done-wrap">
+    <div class="done-card">
+        <div class="done-check">&#10004;</div>
+        <h1>Exam Submitted</h1>
+        <p class="done-text">
+            Your responses have been recorded successfully and you have been
+            signed out. Results are reviewed and shared by the administrator.
+        </p>
+
+        <div class="done-rules">
+            <div>&#128274; This exam is locked &mdash; it cannot be retaken</div>
+            <div>&#128100; Only the administrator can view your score</div>
+            <div>&#9989; You can safely close this window</div>
+        </div>
+
+        <a href="{{ url_for('index') }}" class="btn-primary">Back to Home</a>
+    </div>
+</section>
+
+<style>
+.done-wrap {
+    display: flex;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.done-card {
+    max-width: 540px;
+    width: 100%;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-top: 4px solid #059669;
+    border-radius: 14px;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.06);
+}
+
+.done-check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #ecfdf5;
+    border: 2px solid #a7f3d0;
+    color: #059669;
+    font-size: 1.7rem;
+    margin-bottom: 1rem;
+}
+
+.done-card h1 {
+    font-size: 1.65rem;
+    color: #2c3e50;
+    margin-bottom: 0.6rem;
+}
+
+.done-text {
+    color: #64748b;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.done-rules {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: left;
+    background: #f4f6f8;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.75rem;
+    font-size: 0.88rem;
+    color: #475569;
+}
+
+@media (max-width: 560px) {
+    .done-card { padding: 2rem 1.25rem; }
+}
+</style>
+{% endblock %}

@@ -83,9 +83,10 @@ for i in range(60):
     s.post(BASE + "/quiz", data={"answer": "x"}, timeout=60, allow_redirects=False)
 r = s.post(BASE + "/submit", timeout=60, allow_redirects=False)
 print("submit   :", r.status_code, r.headers.get("Location"))
-r = s.get(BASE + "/result", timeout=60)
-print("result   :", r.status_code, "complete=%s" % ("Assessment Complete" in r.text))
-print("   lock   :", "Exam already submitted" in r.text)
+r = s.get(BASE + "/done", timeout=60)
+print("done     :", r.status_code, "submitted=%s" % ("Exam Submitted" in r.text))
+r = s.get(BASE + "/quiz", timeout=60, allow_redirects=False)
+print("logged out:", r.status_code, r.headers.get("Location"))
 
 print()
 print("--- retake blocked ---")

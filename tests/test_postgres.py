@@ -66,10 +66,11 @@ for i in range(60):
 r = c.post("/submit", follow_redirects=False)
 print("submit          :", r.status_code, r.headers.get("Location"))
 
-r = c.get("/result")
+r = c.get("/done")
 html = r.get_data(as_text=True)
-print("result          :", r.status_code, "complete=%s" % ("Assessment Complete" in html))
-print("lock notice     :", "Exam already submitted" in html)
+print("done page       :", r.status_code, "submitted=%s" % ("Exam Submitted" in html))
+with c.session_transaction() as sess:
+    print("auto logout     :", sess.get("student_email") is None)
 
 print()
 print("=== attempt row in postgres ===")

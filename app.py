@@ -499,10 +499,11 @@ def resume():
                     session["role"] = latest["role"]
                 if registration_status(row["email"]) != "approved":
                     return redirect(url_for("pending", next=next_role or None))
+                if latest:
+                    session.clear()
+                    return redirect(url_for("done"))
                 if next_role in QUESTIONS:
                     return redirect(url_for("start", role=next_role))
-                if latest:
-                    return redirect(url_for("result"))
                 return redirect(url_for("index_role"))
     return render_template("resume.html", error=error, next_role=next_role)
 
@@ -525,9 +526,8 @@ def start(role):
 
     # A submitted exam can never be taken again.
     if get_attempt(email, role):
-        session["role"] = role
-        session.modified = True
-        return redirect(url_for("result"))
+        session.clear()
+        return redirect(url_for("done"))
 
     # Opportunistic cleanup of stale sessions.
     if random.random() < 0.02:
@@ -562,8 +562,9 @@ def submit():
             return redirect(url_for("index"))
         email = session.get("student_email")
         attempt = get_attempt(email, role)
+        session.clear()
         if attempt:
-            return redirect(url_for("result"))
+            return redirect(url_for("done"))
         return redirect(url_for("index"))
 
     if exam["submitted_at"] is None:
@@ -574,7 +575,15 @@ def submit():
                      correct, total, percentage, breakdown,
                      exam["violations"], time_taken)
         save_exam(exam)
-    return redirect(url_for("result"))
+
+    # Submitted students are signed out immediately; only the admin can see results.
+    session.clear()
+    return redirect(url_for("done"))
+
+
+@app.route("/done")
+def done():
+    return render_template("submitted.html")
 
 
 @app.route("/quiz", methods=["GET", "POST"])
@@ -590,7 +599,8 @@ def quiz():
 
     # Locked: this exam was already submitted.
     if get_attempt(exam["student_email"], role):
-        return redirect(url_for("result"))
+        session.clear()
+        return redirect(url_for("done"))
 
     deadline = exam["deadline"]
     if deadline is not None and time.time() > deadline:
