@@ -1,0 +1,5 @@
+# Development / test dependencies (not needed for production deploys)
+pgserver>=0.1.4
+psutil>=5.9.0
+waitress>=2.1.2
+requests>=2.31.0

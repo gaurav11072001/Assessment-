@@ -9,11 +9,18 @@ Connection strategy:
   - SQLite: one thread-local connection with WAL enabled for concurrent reads.
 """
 
+import logging
 import os
 import sqlite3
 import threading
 import time
 import uuid
+
+# psycopg emits an INFO line on every connection reset ("rolling back
+# returned connection"). At exam scale that is thousands of log lines, so
+# quiet it down and keep the Render logs readable.
+logging.getLogger("psycopg").setLevel(logging.WARNING)
+logging.getLogger("psycopg.pool").setLevel(logging.WARNING)
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
 IS_PG = DATABASE_URL.startswith("postgres")
@@ -35,6 +42,7 @@ DB_PATH = os.path.join(BASE_DIR, "examportal.db")
 PG_POOL_SIZE = int(os.environ.get("PG_POOL_SIZE", "4"))
 PG_POOL_MIN = int(os.environ.get("PG_POOL_MIN", "1"))
 PG_CONNECT_TIMEOUT = int(os.environ.get("PG_CONNECT_TIMEOUT", "5"))
+PG_POOL_WAIT = float(os.environ.get("PG_POOL_WAIT", "10"))
 # While the database is down, fail fast instead of paying the connect
 # timeout on every single query.
 CONNECT_RETRY_DELAY = int(os.environ.get("PG_CONNECT_RETRY_DELAY", "10"))
@@ -50,10 +58,73 @@ _pool_lock = threading.Lock()
 # --------------------------------------------------------------------------
 
 def _pg_dsn():
-    dsn = DATABASE_URL
-    if "sslmode" not in dsn:
-        dsn += ("&" if "?" in dsn else "?") + "sslmode=require"
-    return dsn
+    """Return the connection string.
+
+    Do not force an sslmode here. The driver default (prefer) negotiates SSL
+    when the server supports it and falls back cleanly when it does not.
+    Forcing sslmode=require breaks against servers that do not advertise
+    SSL support at all.
+    """
+    return DATABASE_URL
+
+
+def _create_pool():
+    """Build a connection pool for whichever driver is installed.
+
+    psycopg 3 (psycopg_pool.ConnectionPool) is preferred because it ships
+    binary wheels for every current Python release. psycopg2's
+    ThreadedConnectionPool is kept as a fallback.
+
+    NOTE: psycopg_pool 3.x renamed ThreadedConnectionPool to ConnectionPool
+    and changed minconn/maxconn to min_size/max_size.
+    """
+    try:
+        import psycopg_pool
+        pool_cls = getattr(psycopg_pool, "ConnectionPool", None)
+        if pool_cls is not None:
+            return pool_cls(
+                _pg_dsn(),
+                min_size=PG_POOL_MIN,
+                max_size=PG_POOL_SIZE,
+                kwargs={"connect_timeout": PG_CONNECT_TIMEOUT},
+                timeout=PG_POOL_WAIT,
+            )
+    except Exception:
+        pass
+
+    import psycopg2.pool
+    return psycopg2.pool.ThreadedConnectionPool(
+        PG_POOL_MIN, PG_POOL_SIZE, _pg_dsn(),
+        connect_timeout=PG_CONNECT_TIMEOUT,
+    )
+
+
+def _verify_pool(pool):
+    """Prove the pool can actually reach the database.
+
+    psycopg_pool opens connections in a background task, so constructing the
+    pool succeeds even when the database is unreachable. Without this check
+    every query would block until the pool timeout instead of failing fast.
+    """
+    conn = pool.getconn()
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT 1")
+        cur.fetchone()
+        cur.close()
+    finally:
+        pool.putconn(conn)
+
+
+def _close_pool(pool):
+    for method in ("closeall", "close"):
+        fn = getattr(pool, method, None)
+        if callable(fn):
+            try:
+                fn()
+            except Exception:
+                pass
+            return
 
 
 def _get_pool():
@@ -68,24 +139,16 @@ def _get_pool():
         if time.time() - _pool_error_at < CONNECT_RETRY_DELAY:
             raise RuntimeError("database temporarily unreachable")
         try:
-            try:
-                # psycopg 3 (preferred): binary wheels exist for every
-                # current Python release.
-                import psycopg_pool
-                _pool = psycopg_pool.ThreadedConnectionPool(
-                    PG_POOL_MIN, PG_POOL_SIZE, _pg_dsn(),
-                    kwargs={"connect_timeout": PG_CONNECT_TIMEOUT},
-                    timeout=30,
-                )
-            except ImportError:
-                import psycopg2.pool
-                _pool = psycopg2.pool.ThreadedConnectionPool(
-                    PG_POOL_MIN, PG_POOL_SIZE, _pg_dsn(),
-                    connect_timeout=PG_CONNECT_TIMEOUT,
-                )
+            pool = _create_pool()
+            _verify_pool(pool)
+            _pool = pool
             _pool_error_at = 0.0
             return _pool
         except Exception:
+            try:
+                _close_pool(locals().get("pool"))
+            except Exception:
+                pass
             _pool_error_at = time.time()
             raise
 
