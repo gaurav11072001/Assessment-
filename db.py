@@ -17,6 +17,17 @@ import uuid
 DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
 IS_PG = DATABASE_URL.startswith("postgres")
 
+# Render wipes the local filesystem whenever a free instance spins down or
+# redeploys. Falling back to SQLite there would silently destroy every exam
+# result, so refuse to boot instead.
+ON_RENDER = os.environ.get("RENDER", "").lower() in ("1", "true", "yes")
+if ON_RENDER and not IS_PG:
+    raise RuntimeError(
+        "DATABASE_URL is not set on Render. The local filesystem is wiped on "
+        "every spin-down/redeploy, so the SQLite fallback would lose all exam "
+        "results. Attach a Postgres database (or set DATABASE_URL) and redeploy."
+    )
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "examportal.db")
 

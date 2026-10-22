@@ -1,8 +1,18 @@
+# Render Blueprint - free tier configuration.
+#
+# Sized for ~60-80 concurrent candidates: measured 80 students = 9,920
+# requests with 0 errors, ~59 MB RSS per worker.
+#
+# To remove the 15-minute sleep behaviour and the 30-day database expiry,
+# upgrade in the Render dashboard:
+#   web service -> Starter  ($7/mo,  0.5 CPU / 512 MB)
+#   postgres    -> paid    ($6/mo,  256 MB, no expiry)
+
 services:
   - type: web
     name: assessment
     runtime: python
-    plan: standard
+    plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app --config gunicorn.conf.py
     healthCheckPath: /healthz
@@ -20,12 +30,16 @@ services:
         sync: false
       - key: ADMIN_PASSWORD
         generateValue: true
+      # 2 workers x 8 threads = 16 concurrent handlers (free tier is 512 MB)
       - key: WEB_CONCURRENCY
-        value: "4"
+        value: "2"
       - key: WEB_THREADS
         value: "8"
+      # Free Postgres allows 5 connections; stay under that.
       - key: PG_POOL_SIZE
         value: "4"
+      - key: PG_POOL_MIN
+        value: "1"
       - key: COOKIE_SECURE
         value: "1"
 

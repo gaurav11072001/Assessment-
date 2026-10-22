@@ -46,6 +46,7 @@ question sets for **Embedded** and **Python Developer** roles.
 ├── db.py                   # DB layer (PostgreSQL + SQLite), pooling, schema
 ├── gunicorn.conf.py        # Production WSGI config
 ├── render.yaml             # Render blueprint (web service + postgres)
+├── warmup.py               # Wakes a sleeping free instance before an exam
 ├── Procfile                # Render/Heroku start command
 ├── requirements.txt
 ├── runtime.txt
@@ -146,18 +147,76 @@ every ~30 seconds is only ~3 requests/second.
 
 ### Sizing guidance
 
-| Candidates | Plan | Workers × Threads |
+| Candidates | Plan | Workers × Threads | Notes |
+|---|---|---|---|
+| 60–80 | `free` web service + `free` Postgres | 2 × 8 | See "Free tier" below |
+| up to ~100 | `starter` ($7) | 2 × 8 | Removes the 15-min sleep |
+| up to ~400 | `standard` ($25) | 4 × 8 | 1 CPU / 2 GB |
+
+---
+
+## Using the free tier (60–80 students)
+
+**Yes — 60–80 candidates is within free-tier capacity.** The load test above
+ran 80 students through the full exam on a *single* process with 0 errors, and
+memory came out at ~59 MB per worker (2 workers ≈ 120 MB of the 512 MB
+budget). Real exam load is only ~3 requests/second.
+
+### What the free tier changes
+
+| Free tier behaviour | Impact on your exam | Mitigation |
 |---|---|---|
-| up to ~100 | `starter` (512 MB, 0.5 CPU) | 2 × 8 |
-| up to ~400 | `standard` (2 GB, 1 CPU) | 4 × 8 |
+| Spins down after 15 min without traffic, ~1 min to start again | Cold start **before** the exam | Run `warmup.py` 5 min before |
+| Cannot run more than one instance | No horizontal scaling | Not needed at this scale |
+| Local filesystem wiped on every spin-down/redeploy | SQLite data would vanish | `DATABASE_URL` is required — the app now **refuses to boot** without it on Render |
+| Free Postgres expires **30 days after creation** (14-day grace, then deleted) | Results deleted if the DB is old | Create the DB in the same week as the exam, or upgrade to $6/mo |
+| 750 free instance hours/month | A 1-hour exam uses ~1 hour | No problem |
+| 5 GB bandwidth/month included | 70 students ≈ 60 MB of traffic | No problem |
+| 5 DB connections | Pool is capped at 4 (`PG_POOL_SIZE`) | Already handled |
+| No SLA; Render advises against production use | If Render has an incident, candidates are blocked | Have a backup plan (see below) |
 
-> **Important:** do not use the Render *free* web service for a live exam.
-> Free instances spin down after 15 minutes of inactivity and would drop
-> candidates mid-exam, and the free tier's 512 MB / 0.5 CPU is marginal.
-> Use `starter` at minimum, `standard` for comfort. The free Postgres plan
-> is fine (it allows 5 connections; the pool is capped at 4).
+### During the exam the instance stays awake
 
-### Concurrency notes
+The 15-minute sleep only triggers when **no** requests arrive. With 60–80
+candidates refreshing a question every ~30 seconds, traffic is continuous, so
+the service will not sleep mid-exam. The only real risk is the idle window
+before the first candidate logs in.
+
+### Exam-day checklist
+
+```bash
+# 1. Wake the instance (cold start is ~1 minute)
+python warmup.py https://your-app.onrender.com
+
+# 2. Confirm it is alive and the DB is reachable
+curl https://your-app.onrender.com/healthz
+# -> {"status":"ok","database":"postgresql","workers":"2"}
+
+# 3. Open the admin panel and confirm the results table is loading
+```
+
+### Optional: keep it warm throughout
+
+```bash
+python warmup.py https://your-app.onrender.com --keep-alive 60
+```
+
+Run this from a machine that stays online for the exam duration.
+
+### Low-cost upgrade instead of free
+
+If you want to remove the sleep and the database expiry, the cheapest option is:
+
+| Item | Free | Paid | What you get |
+|---|---|---|---|
+| Web service | $0 | **$7/mo** | No spin-down, 0.5 CPU / 512 MB |
+| Postgres | $0 | **$6/mo** | No 30-day expiry, 256 MB |
+
+That is **$13/month** for a reliable exam, or **$0** with the mitigations above.
+
+---
+
+## Concurrency notes
 
 - **All exam state lives in PostgreSQL**, not in the session cookie. The cookie
   carries only a session ID (~190 bytes), so the 4 KB browser cookie limit is
@@ -167,6 +226,8 @@ every ~30 seconds is only ~3 requests/second.
 - Every query is **indexed** (`lower(email)`, `lower(full_name)`, `(email, role)`).
 - Attempts carry a **unique constraint** on `(email, role)`, so 10 concurrent
   submits for the same student still create exactly one result row.
+- Gunicorn **worker recycling is disabled** (`MAX_REQUESTS=0`) so no student
+  loses an answer to a mid-exam worker restart — browsers do not retry POSTs.
 - Stale `exam_sessions` rows are garbage-collected opportunistically.
 
 ---
