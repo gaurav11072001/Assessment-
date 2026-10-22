@@ -344,6 +344,8 @@ def init_schema():
             role TEXT NOT NULL,
             category_order TEXT NOT NULL,
             answers TEXT NOT NULL,
+            q_order TEXT NOT NULL DEFAULT '{{}}',
+            seed TEXT NOT NULL DEFAULT '',
             cat_index INTEGER NOT NULL DEFAULT 0,
             q_index INTEGER NOT NULL DEFAULT 0,
             violations INTEGER NOT NULL DEFAULT 0,
@@ -354,6 +356,10 @@ def init_schema():
         )
         """,
         "CREATE INDEX IF NOT EXISTS idx_sessions_created ON exam_sessions (created_at)",
+
+        # Migrations for databases created before per-student shuffling.
+        "ALTER TABLE exam_sessions ADD COLUMN q_order TEXT NOT NULL DEFAULT '{{}}'",
+        "ALTER TABLE exam_sessions ADD COLUMN seed TEXT NOT NULL DEFAULT ''",
     ]
 
     for stmt in statements:

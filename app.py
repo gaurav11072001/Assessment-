@@ -83,26 +83,26 @@ QUESTIONS = {
         {"q": "Choose the word spelt correctly:", "options": ["Recommandation", "Recommendation", "Reccomendation", "Recommnedation"], "answer": "Recommendation"},
     ],
     "embedded": [
-        {"q": "Which is an 8-bit microcontroller?", "options": ["8051", "ARM7", "STM32", "Raspberry Pi"], "answer": "8051"},
-        {"q": "ISR stands for?", "options": ["Interrupt Service Routine", "Internal System Routine", "Input Signal Routine", "None"], "answer": "Interrupt Service Routine"},
-        {"q": "Embedded C uses which header for delay?", "options": ["<delay.h>", "<util/delay.h>", "<time.h>", "<wait.h>"], "answer": "<util/delay.h>"},
-        {"q": "GPIO stands for?", "options": ["General Purpose Input/Output", "Generic Process Output", "Global Input Output", "None"], "answer": "General Purpose Input/Output"},
-        {"q": "I2C uses which wiring?", "options": ["Two-wire", "Four-wire", "Single wire", "Wireless"], "answer": "Two-wire"},
-        {"q": "RTOS means?", "options": ["Real Time Operating System", "Remote Time OS", "Rapid Transfer OS", "None"], "answer": "Real Time Operating System"},
-        {"q": "Watchdog timer purpose?", "options": ["Reset system on hang", "Increase speed", "Store data", "Display output"], "answer": "Reset system on hang"},
-        {"q": "ADC converts?", "options": ["Analog to Digital", "Digital to Analog", "Both", "None"], "answer": "Analog to Digital"},
-        {"q": "Baud rate in UART is measured in?", "options": ["Bits per second", "Bytes per second", "Volts", "Amps"], "answer": "Bits per second"},
-        {"q": "volatile keyword in embedded C?", "options": ["Prevents compiler optimization", "Increases speed", "Declares constant", "None"], "answer": "Prevents compiler optimization"},
-        {"q": "SPI is a?", "options": ["Synchronous serial protocol", "Parallel bus", "Wireless", "Optical"], "answer": "Synchronous serial protocol"},
-        {"q": "Bootloader function?", "options": ["Loads main program", "Deletes code", "Formats memory", "None"], "answer": "Loads main program"},
-        {"q": "Interrupt latency is?", "options": ["Time to respond to an interrupt", "Interrupt frequency", "Interrupt voltage", "None"], "answer": "Time to respond to an interrupt"},
-        {"q": "PWM is used for?", "options": ["Motor speed control", "Data storage", "Display", "None"], "answer": "Motor speed control"},
-        {"q": "Which is an embedded system?", "options": ["Washing machine", "Desktop PC", "Laptop", "Server"], "answer": "Washing machine"},
-        {"q": "Stack in embedded stores?", "options": ["Return addresses and local vars", "Only code", "Only constants", "None"], "answer": "Return addresses and local vars"},
-        {"q": "CAN protocol is used in?", "options": ["Automotive", "Home theater", "Audio", "None"], "answer": "Automotive"},
-        {"q": "Flash memory is?", "options": ["Non-volatile", "Volatile", "Both", "None"], "answer": "Non-volatile"},
-        {"q": "Endianness refers to?", "options": ["Byte order", "Word size", "Voltage", "None"], "answer": "Byte order"},
-        {"q": "Embedded Linux vs RTOS?", "options": ["RTOS is deterministic", "Linux is deterministic", "Same", "None"], "answer": "RTOS is deterministic"},
+        {"q": "Which chip powers the NodeMCU 1.0 board and has Wi-Fi but no Bluetooth?", "options": ["ESP8266", "ESP32", "ATmega328P", "ATmega2560"], "answer": "ESP8266"},
+        {"q": "On ESP32, which ADC unit becomes unreliable while Wi-Fi is active?", "options": ["ADC2", "ADC1", "DAC1", "DAC2"], "answer": "ADC2"},
+        {"q": "Which ESP32 peripheral is used to generate PWM for dimming or motor speed?", "options": ["LEDC", "MCPWM only", "SysTick", "RTC"], "answer": "LEDC"},
+        {"q": "In the Arduino IDE, which function must be called before digitalWrite() on a pin?", "options": ["pinMode()", "analogRead()", "attachInterrupt()", "delay()"], "answer": "pinMode()"},
+        {"q": "On an Arduino Uno (ATmega328P), which pins support analogWrite() PWM?", "options": ["3, 5, 6, 9, 10, 11", "0, 1, 2, 3, 4, 5", "2, 4, 6, 8, 10, 12", "Every digital pin"], "answer": "3, 5, 6, 9, 10, 11"},
+        {"q": "Embedded C: which qualifier tells the compiler a value can change outside normal program flow (ISR or hardware register)?", "options": ["volatile", "static", "register", "const"], "answer": "volatile"},
+        {"q": "Embedded C on AVR: which intrinsic globally disables interrupts?", "options": ["cli()", "sei()", "reti()", "nop()"], "answer": "cli()"},
+        {"q": "Arduino Uno ADC read returns 512 with a 5 V reference. What voltage is measured?", "options": ["2.5 V", "1.25 V", "5.0 V", "0.5 V"], "answer": "2.5 V"},
+        {"q": "A TSOP1738 style IR receiver module idles at which logic level and pulses which way on a carrier burst?", "options": ["Idle HIGH, goes LOW", "Idle LOW, goes HIGH", "Idle HIGH, goes HIGH", "Floating, no change"], "answer": "Idle HIGH, goes LOW"},
+        {"q": "An HC-SR501 PIR module triggers on what?", "options": ["Change in infrared emitted by a moving warm body", "Ultrasonic echo return time", "Reflected visible light", "Magnetic field variation"], "answer": "Change in infrared emitted by a moving warm body"},
+        {"q": "For HC-SR04, which formula gives distance in cm using the echo pulse width?", "options": ["(echo_us x 0.0343) / 2", "echo_us x 0.0343", "echo_us / 0.0343", "(echo_us x 2) / 0.0343"], "answer": "(echo_us x 0.0343) / 2"},
+        {"q": "HC-SR04 needs a trigger pulse of minimum width:", "options": ["10 microseconds", "10 milliseconds", "1 microsecond", "100 nanoseconds"], "answer": "10 microseconds"},
+        {"q": "An SG90 servo at 1.5 ms pulse width points to:", "options": ["90 degrees (centre)", "0 degrees", "180 degrees", "It does not move"], "answer": "90 degrees (centre)"},
+        {"q": "Which PWM frame rate is required for a standard hobby servo like SG90?", "options": ["50 Hz", "500 Hz", "1 kHz", "20 kHz"], "answer": "50 Hz"},
+        {"q": "The L298N module contains how many full H-bridges, allowing bidirectional drive of how many DC motors?", "options": ["2 H-bridges, 2 motors", "1 H-bridge, 1 motor", "4 H-bridges, 4 motors", "2 H-bridges, 4 motors"], "answer": "2 H-bridges, 2 motors"},
+        {"q": "On an L298N, what does the ENA pin control?", "options": ["Enable and PWM speed of motor A", "Direction of motor A", "Logic supply voltage", "Reset of the bridge"], "answer": "Enable and PWM speed of motor A"},
+        {"q": "Why must the L298N ground be tied to the microcontroller ground?", "options": ["Logic levels need a shared voltage reference", "It increases motor torque", "It reduces heat in the bridge", "It steps up battery voltage"], "answer": "Logic levels need a shared voltage reference"},
+        {"q": "In the Arduino IDE, which board target fits a bare ATmega328P with a 16 MHz crystal and no USB chip?", "options": ["Arduino Pro Mini", "Arduino Uno", "NodeMCU 1.0", "Arduino Due"], "answer": "Arduino Pro Mini"},
+        {"q": "ESP32 is programmed by default over UART0 on which pins?", "options": ["GPIO1 (TX) and GPIO3 (RX)", "GPIO21 and GPIO22", "GPIO16 and GPIO17", "GPIO34 and GPIO35"], "answer": "GPIO1 (TX) and GPIO3 (RX)"},
+        {"q": "In a simple transistor-driven DC motor circuit, which component clamps the back-EMF spike?", "options": ["Flyback diode across the motor", "Pull-up resistor on the base", "Series capacitor", "Zener across the supply only"], "answer": "Flyback diode across the motor"},
     ],
     "python": [
         {"q": "Which keyword is used to define a function in Python?", "options": ["def", "func", "define", "function"], "answer": "def"},
@@ -184,6 +184,14 @@ def save_attempt(email, full_name, role, correct, total, percentage,
         pass
 
 
+def _row_get(row, key, default=None):
+    try:
+        value = row[key]
+    except (KeyError, IndexError, TypeError):
+        return default
+    return default if value is None else value
+
+
 def load_exam(sid):
     if not sid:
         return None
@@ -197,6 +205,8 @@ def load_exam(sid):
         "role": row["role"],
         "category_order": json.loads(row["category_order"]),
         "answers": json.loads(row["answers"]),
+        "q_order": json.loads(_row_get(row, "q_order", "{}")),
+        "seed": _row_get(row, "seed", ""),
         "cat_index": row["cat_index"],
         "q_index": row["q_index"],
         "violations": row["violations"],
@@ -218,27 +228,65 @@ def save_exam(exam):
 def create_exam(email, name, role):
     sid = db.new_sid()
     now = time.time()
+    seed = "%s-%s" % (sid, os.urandom(6).hex())
     db.execute(
         "INSERT INTO exam_sessions (sid, student_email, student_name, role, "
-        "category_order, answers, cat_index, q_index, violations, started_at, "
-        "deadline, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, 0, 0, ?, ?, ?)",
+        "category_order, answers, q_order, seed, cat_index, q_index, violations, "
+        "started_at, deadline, created_at) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, ?, ?, ?)",
         (sid, email, name, role, json.dumps(["aptitude", "reasoning", role]),
-         json.dumps({}), now, now + EXAM_DURATION,
+         json.dumps({}), json.dumps(build_q_order(seed)), seed,
+         now, now + EXAM_DURATION,
          datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     )
     return sid
+
+
+def build_q_order(seed):
+    """Per-student shuffled question order: category -> list of question indexes."""
+    order = {}
+    for category, questions in QUESTIONS.items():
+        idxs = list(range(len(questions)))
+        random.Random("%s|%s" % (seed, category)).shuffle(idxs)
+        order[category] = idxs
+    return order
+
+
+def exam_q_order(exam):
+    """Shuffled order for this exam, falling back to natural order if absent."""
+    stored = exam.get("q_order") or {}
+    if not isinstance(stored, dict):
+        stored = {}
+    order = {}
+    for category in exam["category_order"]:
+        n = len(QUESTIONS.get(category, []))
+        idxs = stored.get(category)
+        if not isinstance(idxs, list) or sorted(idxs) != list(range(n)):
+            idxs = list(range(n))
+        order[category] = idxs
+    return order
+
+
+def exam_options(exam, category, orig_index):
+    """Deterministic per-student option order for one question."""
+    options = list(QUESTIONS[category][orig_index]["options"])
+    seed = exam.get("seed") or exam.get("sid") or ""
+    random.Random("%s|%s|%d" % (seed, category, orig_index)).shuffle(options)
+    return options
 
 
 def compute_result(exam):
     total = 0
     correct = 0
     breakdown = {}
+    order = exam_q_order(exam)
     for category in exam["category_order"]:
         questions = QUESTIONS.get(category, [])
         cat_correct = 0
-        for i, q in enumerate(questions):
+        for orig_index in order[category]:
             total += 1
-            if exam["answers"].get("%s_%d" % (category, i)) == q["answer"]:
+            key = "%s_%d" % (category, orig_index)
+            if exam["answers"].get(key) == questions[orig_index]["answer"]:
                 correct += 1
                 cat_correct += 1
         breakdown[category] = {"correct": cat_correct, "total": len(questions)}
@@ -495,11 +543,12 @@ def quiz():
 
     category = order[cat_index]
     questions = QUESTIONS[category]
+    cat_order = exam_q_order(exam)[category]
 
     if request.method == "POST":
         ans = request.form.get("answer")
-        if ans is not None:
-            exam["answers"]["%s_%d" % (category, q_index)] = ans
+        if ans is not None and q_index < len(cat_order):
+            exam["answers"]["%s_%d" % (category, cat_order[q_index])] = ans
         if q_index + 1 < len(questions):
             exam["q_index"] = q_index + 1
         else:
@@ -514,7 +563,11 @@ def quiz():
         save_exam(exam)
         return redirect(url_for("quiz"))
 
-    question = questions[q_index]
+    orig_index = cat_order[q_index] if q_index < len(cat_order) else q_index
+    question = {
+        "q": questions[orig_index]["q"],
+        "options": exam_options(exam, category, orig_index),
+    }
     progress = {
         "category": category,
         "cat_label": ROLES.get(category, category.title()),
