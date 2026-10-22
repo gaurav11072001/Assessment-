@@ -24,6 +24,7 @@ app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SECURE"] = os.environ.get("COOKIE_SECURE", "0") == "1"
 app.config["PERMANENT_SESSION_LIFETIME"] = 60 * 60 * 6
 app.config["MAX_CONTENT_LENGTH"] = 64 * 1024
+app.config["ASSET_VERSION"] = os.environ.get("ASSET_VERSION", "20261022nav")
 
 ADMIN_USER = os.environ.get("ADMIN_USER", "admin")
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "admin123")
