@@ -309,6 +309,9 @@ def set_cache_headers(response):
         response.headers["Cache-Control"] = "public, max-age=604800, immutable"
     elif request.path == "/healthz":
         response.headers["Cache-Control"] = "no-store"
+    else:
+        response.headers["Cache-Control"] = "no-store, max-age=0"
+        response.headers["Pragma"] = "no-cache"
     return response
 
 
