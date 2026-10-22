@@ -83,26 +83,26 @@ QUESTIONS = {
         {"q": "Choose the word spelt correctly:", "options": ["Recommandation", "Recommendation", "Reccomendation", "Recommnedation"], "answer": "Recommendation"},
     ],
     "embedded": [
-        {"q": "Which chip powers the NodeMCU 1.0 board and has Wi-Fi but no Bluetooth?", "options": ["ESP8266", "ESP32", "ATmega328P", "ATmega2560"], "answer": "ESP8266"},
-        {"q": "On ESP32, which ADC unit becomes unreliable while Wi-Fi is active?", "options": ["ADC2", "ADC1", "DAC1", "DAC2"], "answer": "ADC2"},
-        {"q": "Which ESP32 peripheral is used to generate PWM for dimming or motor speed?", "options": ["LEDC", "MCPWM only", "SysTick", "RTC"], "answer": "LEDC"},
-        {"q": "In the Arduino IDE, which function must be called before digitalWrite() on a pin?", "options": ["pinMode()", "analogRead()", "attachInterrupt()", "delay()"], "answer": "pinMode()"},
-        {"q": "On an Arduino Uno (ATmega328P), which pins support analogWrite() PWM?", "options": ["3, 5, 6, 9, 10, 11", "0, 1, 2, 3, 4, 5", "2, 4, 6, 8, 10, 12", "Every digital pin"], "answer": "3, 5, 6, 9, 10, 11"},
-        {"q": "Embedded C: which qualifier tells the compiler a value can change outside normal program flow (ISR or hardware register)?", "options": ["volatile", "static", "register", "const"], "answer": "volatile"},
-        {"q": "Embedded C on AVR: which intrinsic globally disables interrupts?", "options": ["cli()", "sei()", "reti()", "nop()"], "answer": "cli()"},
-        {"q": "Arduino Uno ADC read returns 512 with a 5 V reference. What voltage is measured?", "options": ["2.5 V", "1.25 V", "5.0 V", "0.5 V"], "answer": "2.5 V"},
-        {"q": "A TSOP1738 style IR receiver module idles at which logic level and pulses which way on a carrier burst?", "options": ["Idle HIGH, goes LOW", "Idle LOW, goes HIGH", "Idle HIGH, goes HIGH", "Floating, no change"], "answer": "Idle HIGH, goes LOW"},
-        {"q": "An HC-SR501 PIR module triggers on what?", "options": ["Change in infrared emitted by a moving warm body", "Ultrasonic echo return time", "Reflected visible light", "Magnetic field variation"], "answer": "Change in infrared emitted by a moving warm body"},
-        {"q": "For HC-SR04, which formula gives distance in cm using the echo pulse width?", "options": ["(echo_us x 0.0343) / 2", "echo_us x 0.0343", "echo_us / 0.0343", "(echo_us x 2) / 0.0343"], "answer": "(echo_us x 0.0343) / 2"},
-        {"q": "HC-SR04 needs a trigger pulse of minimum width:", "options": ["10 microseconds", "10 milliseconds", "1 microsecond", "100 nanoseconds"], "answer": "10 microseconds"},
-        {"q": "An SG90 servo at 1.5 ms pulse width points to:", "options": ["90 degrees (centre)", "0 degrees", "180 degrees", "It does not move"], "answer": "90 degrees (centre)"},
-        {"q": "Which PWM frame rate is required for a standard hobby servo like SG90?", "options": ["50 Hz", "500 Hz", "1 kHz", "20 kHz"], "answer": "50 Hz"},
-        {"q": "The L298N module contains how many full H-bridges, allowing bidirectional drive of how many DC motors?", "options": ["2 H-bridges, 2 motors", "1 H-bridge, 1 motor", "4 H-bridges, 4 motors", "2 H-bridges, 4 motors"], "answer": "2 H-bridges, 2 motors"},
-        {"q": "On an L298N, what does the ENA pin control?", "options": ["Enable and PWM speed of motor A", "Direction of motor A", "Logic supply voltage", "Reset of the bridge"], "answer": "Enable and PWM speed of motor A"},
-        {"q": "Why must the L298N ground be tied to the microcontroller ground?", "options": ["Logic levels need a shared voltage reference", "It increases motor torque", "It reduces heat in the bridge", "It steps up battery voltage"], "answer": "Logic levels need a shared voltage reference"},
-        {"q": "In the Arduino IDE, which board target fits a bare ATmega328P with a 16 MHz crystal and no USB chip?", "options": ["Arduino Pro Mini", "Arduino Uno", "NodeMCU 1.0", "Arduino Due"], "answer": "Arduino Pro Mini"},
-        {"q": "ESP32 is programmed by default over UART0 on which pins?", "options": ["GPIO1 (TX) and GPIO3 (RX)", "GPIO21 and GPIO22", "GPIO16 and GPIO17", "GPIO34 and GPIO35"], "answer": "GPIO1 (TX) and GPIO3 (RX)"},
-        {"q": "In a simple transistor-driven DC motor circuit, which component clamps the back-EMF spike?", "options": ["Flyback diode across the motor", "Pull-up resistor on the base", "Series capacitor", "Zener across the supply only"], "answer": "Flyback diode across the motor"},
+        {"q": "Which development board is based on the ESP8266 Wi-Fi chip?", "options": ["NodeMCU 1.0", "Arduino Uno", "Arduino Nano", "Raspberry Pi Pico"], "answer": "NodeMCU 1.0"},
+        {"q": "How many analog input pins does the Arduino Uno have?", "options": ["6", "8", "14", "20"], "answer": "6"},
+        {"q": "Which Arduino IDE function reads a value from an analog pin?", "options": ["analogRead()", "digitalRead()", "analogWrite()", "pinMode()"], "answer": "analogRead()"},
+        {"q": "On an Arduino Uno, analogWrite() actually outputs:", "options": ["A PWM signal", "A true analog voltage", "A sine wave", "An I2C packet"], "answer": "A PWM signal"},
+        {"q": "ESP32 GPIO pins work at which logic voltage?", "options": ["3.3 V", "5 V", "1.8 V", "12 V"], "answer": "3.3 V"},
+        {"q": "Which pinMode() option enables the internal pull-up resistor on an Arduino pin?", "options": ["INPUT_PULLUP", "OUTPUT", "INPUT", "ANALOG"], "answer": "INPUT_PULLUP"},
+        {"q": "In embedded C, what does the volatile keyword tell the compiler?", "options": ["The value may change unexpectedly, so do not optimise it away", "The value is constant", "Store the variable in flash", "Increase execution speed"], "answer": "The value may change unexpectedly, so do not optimise it away"},
+        {"q": "A typical IR obstacle sensor module pulls its output LOW when it detects:", "options": ["A reflecting surface", "Darkness only", "Sound", "Motion of a warm body"], "answer": "A reflecting surface"},
+        {"q": "A PIR sensor is mainly used to detect:", "options": ["Motion of people or animals", "Colour of an object", "Distance in centimetres", "Sound level"], "answer": "Motion of people or animals"},
+        {"q": "Which ultrasonic sensor is commonly used with Arduino for distance measurement?", "options": ["HC-SR04", "DHT11", "MPU6050", "LDR"], "answer": "HC-SR04"},
+        {"q": "On the HC-SR04, which pin is used to send the trigger pulse?", "options": ["Trig", "Echo", "VCC", "GND"], "answer": "Trig"},
+        {"q": "How many wires does an SG90 servo normally need?", "options": ["3", "2", "4", "5"], "answer": "3"},
+        {"q": "The angle of an SG90 servo is set by varying which signal property?", "options": ["PWM pulse width", "Analog voltage level", "I2C address", "UART baud rate"], "answer": "PWM pulse width"},
+        {"q": "How do you reverse the direction of a simple DC motor?", "options": ["Swap its two supply terminals", "Increase the supply voltage", "Lower the current", "Add a capacitor in series"], "answer": "Swap its two supply terminals"},
+        {"q": "Which module is commonly used to drive two DC motors from an Arduino?", "options": ["L298N", "LM7805", "NE555", "MAX232"], "answer": "L298N"},
+        {"q": "On an L298N, what do the IN1 and IN2 pins control?", "options": ["Rotation direction of motor A", "Speed of motor B", "Input supply voltage", "Over-current limit"], "answer": "Rotation direction of motor A"},
+        {"q": "Why is a separate motor power supply recommended when using an L298N?", "options": ["Motors draw high current that can reset the Arduino", "It increases the logic voltage", "It makes the motor slower", "It removes the need for a common ground"], "answer": "Motors draw high current that can reset the Arduino"},
+        {"q": "In the Arduino IDE, where do you select the board before uploading?", "options": ["Tools > Board", "Sketch > Include Library", "File > Examples", "Edit > Preferences"], "answer": "Tools > Board"},
+        {"q": "Which function in an Arduino sketch runs only once at startup?", "options": ["setup()", "loop()", "main()", "init()"], "answer": "setup()"},
+        {"q": "Which Arduino IDE button compiles and sends the sketch to the board?", "options": ["Upload", "Verify", "Serial Monitor", "New Sketch"], "answer": "Upload"},
     ],
     "python": [
         {"q": "Which keyword is used to define a function in Python?", "options": ["def", "func", "define", "function"], "answer": "def"},
@@ -140,18 +140,37 @@ ROLES = {
 
 def find_registration(full_name, email):
     return db.query_one(
-        "SELECT full_name, email FROM registrations "
+        "SELECT * FROM registrations "
         "WHERE lower(full_name) = lower(?) OR lower(email) = lower(?)",
         (full_name, email)
     )
+
+
+def get_registration(email):
+    if not email:
+        return None
+    row = db.query_one(
+        "SELECT * FROM registrations WHERE lower(email) = lower(?)", (email,)
+    )
+    if not row:
+        return None
+    return dict(row)
+
+
+def registration_status(email):
+    reg = get_registration(email)
+    if not reg:
+        return None
+    return reg.get("status") or "approved"
 
 
 def create_registration(full_name, email):
     try:
         db.insert_ignore(
             "registrations",
-            ["full_name", "email", "created_at"],
-            [full_name, email, datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+            ["full_name", "email", "status", "created_at"],
+            [full_name, email, "pending",
+             datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
         )
         return db.query_one(
             "SELECT id FROM registrations WHERE lower(email) = lower(?)", (email,)
@@ -314,7 +333,39 @@ def index():
 
 @app.route("/role-select")
 def index_role():
-    return render_template("old_index.html", roles=ROLES)
+    email = session.get("student_email")
+    status = registration_status(email)
+    if email and status != "approved":
+        return redirect(url_for("pending"))
+    return render_template("old_index.html", roles=ROLES,
+                           verified=(status == "approved"))
+
+
+@app.route("/pending")
+def pending():
+    """Waiting room for students whose registration is not verified yet."""
+    email = session.get("student_email")
+    if not email:
+        return redirect(url_for("register"))
+    reg = get_registration(email)
+    if not reg:
+        session.pop("student_email", None)
+        session.pop("student_name", None)
+        return redirect(url_for("register"))
+
+    status = reg.get("status") or "approved"
+    next_role = request.args.get("next", "")
+    if status == "approved":
+        if next_role in QUESTIONS:
+            return redirect(url_for("start", role=next_role))
+        return redirect(url_for("index_role"))
+
+    return render_template("pending.html",
+                           student_name=reg["full_name"],
+                           student_email=reg["email"],
+                           status=status,
+                           rejected=(status == "rejected"),
+                           next_role=next_role)
 
 
 @app.route("/ping")
@@ -408,9 +459,11 @@ def register():
                 session["student_email"] = email
                 session["student_name"] = name
                 session.modified = True
-                if next_role in QUESTIONS:
-                    return redirect(url_for("start", role=next_role))
-                return redirect(url_for("index_role"))
+                if registration_status(email) == "approved":
+                    if next_role in QUESTIONS:
+                        return redirect(url_for("start", role=next_role))
+                    return redirect(url_for("index_role"))
+                return redirect(url_for("pending", next=next_role or None))
     return render_template("register.html", error=error, next_role=next_role,
                            student_name=session.get("student_name", ""),
                            student_email=session.get("student_email", ""))
@@ -444,6 +497,8 @@ def resume():
                 )
                 if latest:
                     session["role"] = latest["role"]
+                if registration_status(row["email"]) != "approved":
+                    return redirect(url_for("pending", next=next_role or None))
                 if next_role in QUESTIONS:
                     return redirect(url_for("start", role=next_role))
                 if latest:
@@ -463,6 +518,10 @@ def start(role):
     email = session.get("student_email")
     if not email:
         return redirect(url_for("register", next=role))
+
+    # Admin must verify the candidate before the exam unlocks.
+    if registration_status(email) != "approved":
+        return redirect(url_for("pending", next=role))
 
     # A submitted exam can never be taken again.
     if get_attempt(email, role):
@@ -525,6 +584,9 @@ def quiz():
         return redirect(url_for("index"))
 
     role = exam["role"]
+
+    if registration_status(exam["student_email"]) != "approved":
+        return redirect(url_for("pending"))
 
     # Locked: this exam was already submitted.
     if get_attempt(exam["student_email"], role):
@@ -661,20 +723,38 @@ def admin_logout():
 def admin_dashboard():
     attempts = db.query_all("SELECT * FROM attempts ORDER BY submitted_at DESC")
     registrations = db.query_all("SELECT * FROM registrations ORDER BY created_at DESC")
+    pending_regs = [r for r in registrations
+                    if (dict(r).get("status") or "approved") == "pending"]
 
     total_students = len(registrations)
+    approved = sum(1 for r in registrations
+                   if (dict(r).get("status") or "approved") == "approved")
     submitted = len(attempts)
     avg = round(sum(a["percentage"] for a in attempts) / submitted) if submitted else 0
-    pending = max(0, total_students - submitted)
 
     return render_template("admin_dashboard.html",
                            attempts=attempts,
                            registrations=registrations,
+                           pending_regs=pending_regs,
                            total_students=total_students,
+                           approved=approved,
                            submitted=submitted,
-                           pending=pending,
                            avg_score=avg,
                            ROLES=ROLES)
+
+
+@app.route("/admin/registration/<int:reg_id>/approve", methods=["POST"])
+@admin_required
+def admin_approve(reg_id):
+    db.execute("UPDATE registrations SET status = 'approved' WHERE id = ?", (reg_id,))
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/registration/<int:reg_id>/reject", methods=["POST"])
+@admin_required
+def admin_reject(reg_id):
+    db.execute("UPDATE registrations SET status = 'rejected' WHERE id = ?", (reg_id,))
+    return redirect(url_for("admin_dashboard"))
 
 
 @app.route("/admin/attempt/<int:attempt_id>")

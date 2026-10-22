@@ -64,6 +64,8 @@ def student(i):
         loc["reqs"] += 1
         if r.status_code not in (200, 302):
             loc["errors"].append("register %s" % r.status_code)
+        db.execute("UPDATE registrations SET status = 'approved' "
+                   "WHERE lower(email) = lower(?)", ("pgload%s%d@example.com" % (RUN, i),))
         s.get(BASE + "/start/python", timeout=90)
         loc["reqs"] += 1
         for _ in range(60):

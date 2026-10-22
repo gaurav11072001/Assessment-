@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Awaiting Verification | ExamPortal{% endblock %}
+
+{% block content %}
+<section class="pending-wrap">
+    <div class="pending-card {{ 'rejected' if rejected else '' }}">
+        {% if rejected %}
+        <div class="pending-icon">&#10006;</div>
+        <h1>Registration Not Approved</h1>
+        <p class="pending-text">
+            Your registration was declined by the administrator. If you think this
+            is a mistake, please contact the exam coordinator.
+        </p>
+        {% else %}
+        <div class="pending-icon">&#8987;</div>
+        <h1>Awaiting Admin Verification</h1>
+        <p class="pending-text">
+            Your registration has been received. The assessment will unlock as soon
+            as the administrator verifies your account.
+        </p>
+        {% endif %}
+
+        <div class="pending-details">
+            <div><span>Candidate</span><strong>{{ student_name }}</strong></div>
+            <div><span>Email</span><strong>{{ student_email }}</strong></div>
+            <div><span>Status</span><strong class="pending-status">{{ status|capitalize }}</strong></div>
+        </div>
+
+        <div class="pending-actions">
+            <a href="{{ url_for('pending', next=next_role or None) }}" class="btn-primary">Check Status Again</a>
+            <a href="{{ url_for('reset') }}" class="btn-outline">Start Over</a>
+        </div>
+
+        <p class="pending-note">
+            Keep this page and refresh after the administrator approves your account.
+        </p>
+    </div>
+</section>
+
+<style>
+.pending-wrap {
+    display: flex;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.pending-card {
+    max-width: 560px;
+    width: 100%;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-top: 4px solid #f59e0b;
+    border-radius: 14px;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.06);
+}
+
+.pending-card.rejected { border-top-color: #dc2626; }
+
+.pending-icon {
+    font-size: 2.2rem;
+    line-height: 1;
+    margin-bottom: 0.75rem;
+}
+
+.pending-card h1 {
+    font-size: 1.6rem;
+    color: #2c3e50;
+    margin-bottom: 0.6rem;
+}
+
+.pending-text {
+    color: #64748b;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.pending-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    text-align: left;
+    background: #f4f6f8;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.pending-details div { display: flex; flex-direction: column; gap: 0.15rem; }
+.pending-details span {
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: #64748b;
+}
+.pending-details strong { color: #2c3e50; word-break: break-word; }
+.pending-status { color: #c2410c !important; }
+
+.pending-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.pending-note {
+    margin-top: 1.1rem;
+    font-size: 0.8rem;
+    color: #94a3b8;
+}
+
+@media (max-width: 560px) {
+    .pending-details { grid-template-columns: 1fr; }
+    .pending-card { padding: 2rem 1.25rem; }
+}
+</style>
+{% endblock %}

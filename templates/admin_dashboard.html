@@ -22,17 +22,56 @@
             <div class="astat-label">Registered Students</div>
         </div>
         <div class="astat">
-            <div class="astat-value">{{ submitted }}</div>
-            <div class="astat-label">Exams Submitted</div>
+            <div class="astat-value">{{ approved }}</div>
+            <div class="astat-label">Verified Students</div>
         </div>
         <div class="astat">
-            <div class="astat-value">{{ pending }}</div>
-            <div class="astat-label">Awaiting Submission</div>
+            <div class="astat-value">{{ submitted }}</div>
+            <div class="astat-label">Exams Submitted</div>
         </div>
         <div class="astat">
             <div class="astat-value">{{ avg_score }}%</div>
             <div class="astat-label">Average Score</div>
         </div>
+    </div>
+
+    <div class="admin-card {{ 'has-pending' if pending_regs else '' }}">
+        <h3 class="card-title">Pending Verification ({{ pending_regs|length }})</h3>
+        {% if pending_regs %}
+        <div class="table-scroll">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Student</th>
+                        <th>Email</th>
+                        <th>Registered At</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in pending_regs %}
+                    <tr>
+                        <td>{{ r.id }}</td>
+                        <td class="strong-cell">{{ r.full_name }}</td>
+                        <td class="muted-cell">{{ r.email }}</td>
+                        <td class="muted-cell">{{ r.created_at }}</td>
+                        <td class="action-cell">
+                            <form method="POST" action="{{ url_for('admin_approve', reg_id=r.id) }}">
+                                <button type="submit" class="btn-approve">Approve</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('admin_reject', reg_id=r.id) }}">
+                                <button type="submit" class="btn-reject">Reject</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">No students are waiting for verification.</div>
+        {% endif %}
     </div>
 
     <div class="admin-card">
@@ -97,6 +136,7 @@
                         <th>Email</th>
                         <th>Registered At</th>
                         <th>Status</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -107,11 +147,23 @@
                         <td class="muted-cell">{{ r.email }}</td>
                         <td class="muted-cell">{{ r.created_at }}</td>
                         <td>
-                            {% set done = attempts | selectattr('email', 'equalto', r.email) | list %}
-                            {% if done %}
-                            <span class="status-pill done">Submitted</span>
+                            {% set rstatus = r.status or 'approved' %}
+                            {% if rstatus == 'approved' %}
+                            <span class="status-pill done">Verified</span>
+                            {% elif rstatus == 'rejected' %}
+                            <span class="status-pill rejected">Rejected</span>
                             {% else %}
-                            <span class="status-pill pending">Pending</span>
+                            <span class="status-pill pending">Awaiting Approval</span>
+                            {% endif %}
+                        </td>
+                        <td class="action-cell">
+                            {% if rstatus == 'pending' %}
+                            <form method="POST" action="{{ url_for('admin_approve', reg_id=r.id) }}">
+                                <button type="submit" class="btn-approve">Approve</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('admin_reject', reg_id=r.id) }}">
+                                <button type="submit" class="btn-reject">Reject</button>
+                            </form>
                             {% endif %}
                         </td>
                     </tr>
@@ -241,6 +293,26 @@
 .status-pill { padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
 .status-pill.done { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
 .status-pill.pending { background: #fff7ed; color: #c2410c; border: 1px solid #fdba74; }
+.status-pill.rejected { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+.has-pending { border-color: #fcd34d; box-shadow: 0 4px 18px rgba(245,158,11,0.15); }
+
+.action-cell { display: flex; gap: 0.4rem; }
+.action-cell form { margin: 0; }
+
+.btn-approve, .btn-reject {
+    border: none;
+    padding: 0.4rem 0.85rem;
+    border-radius: 7px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.btn-approve { background: #059669; color: #fff; }
+.btn-approve:hover { background: #047857; }
+.btn-reject { background: #fff; color: #b91c1c; border: 1px solid #fecaca; }
+.btn-reject:hover { background: #fef2f2; }
 
 .view-link {
     color: #2563eb;

@@ -52,6 +52,9 @@ c = appmod.app.test_client()
 r = c.post("/register", data={"name": "PG Student", "email": "pg@example.com"})
 print("register        :", r.status_code, r.headers.get("Location"))
 
+db.execute("UPDATE registrations SET status = 'approved' "
+           "WHERE lower(email) = lower(?)", ("pg@example.com",))
+
 r = c.get("/start/python", follow_redirects=False)
 print("start           :", r.status_code, r.headers.get("Location"))
 
@@ -107,6 +110,8 @@ print("=== concurrent submits race check ===")
 import threading
 sess = appmod.app.test_client()
 sess.post("/register", data={"name": "Race PG", "email": "racepg@example.com"})
+db.execute("UPDATE registrations SET status = 'approved' "
+           "WHERE lower(email) = lower(?)", ("racepg@example.com",))
 sess.get("/start/embedded")
 errs = []
 def hammer():

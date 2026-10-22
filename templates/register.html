@@ -7,7 +7,7 @@
     <div class="reg-card">
         <div class="reg-badge">STEP 1 OF 2</div>
         <h1>Student Registration</h1>
-        <p class="reg-sub">Enter your details to start the assessment. Your name and email appear on the result report.</p>
+        <p class="reg-sub">Enter your details to request the assessment. An administrator must verify your account before the exam unlocks.</p>
 
         {% if error %}
         <div class="reg-error">{{ error }}</div>
@@ -31,6 +31,7 @@
             </label>
 
             <div class="reg-rules">
+                <div class="rule"><span class="rule-icon">&#9989;</span> Your account must be <strong>verified by the admin</strong> before you can start</div>
                 <div class="rule"><span class="rule-icon">&#9201;</span> Test duration is strictly <strong>1 hour</strong></div>
                 <div class="rule"><span class="rule-icon">&#9888;</span> Switching tabs is monitored &mdash; <strong>3 warnings</strong> auto-submits the exam</div>
                 <div class="rule"><span class="rule-icon">&#128274;</span> Copy, paste and printing are blocked on question pages</div>
