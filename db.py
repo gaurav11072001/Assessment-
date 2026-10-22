@@ -22,6 +22,9 @@ import uuid
 logging.getLogger("psycopg").setLevel(logging.WARNING)
 logging.getLogger("psycopg.pool").setLevel(logging.WARNING)
 
+logger = logging.getLogger("examportal.db")
+logger.setLevel(logging.INFO)
+
 DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
 IS_PG = DATABASE_URL.startswith("postgres")
 
@@ -42,7 +45,7 @@ DB_PATH = os.path.join(BASE_DIR, "examportal.db")
 PG_POOL_SIZE = int(os.environ.get("PG_POOL_SIZE", "4"))
 PG_POOL_MIN = int(os.environ.get("PG_POOL_MIN", "1"))
 PG_CONNECT_TIMEOUT = int(os.environ.get("PG_CONNECT_TIMEOUT", "5"))
-PG_POOL_WAIT = float(os.environ.get("PG_POOL_WAIT", "10"))
+PG_POOL_WAIT = float(os.environ.get("PG_POOL_WAIT", "5"))
 # While the database is down, fail fast instead of paying the connect
 # timeout on every single query.
 CONNECT_RETRY_DELAY = int(os.environ.get("PG_CONNECT_RETRY_DELAY", "10"))
@@ -188,8 +191,34 @@ def _translate(sql):
     return sql.replace("?", "%s") if IS_PG else sql
 
 
+def _is_connection_error(exc):
+    """True when the failure was the connection, not the query.
+
+    A dropped connection (DB restart, idle timeout) is recoverable: drop the
+    pool, rebuild it and retry. A bad query is not.
+    """
+    name = type(exc).__name__
+    if name in ("OperationalError", "InterfaceError", "PoolTimeout",
+                "PoolClosed", "ConnectionDoesNotExist"):
+        return True
+    return "connection" in str(exc).lower() and "server closed" in str(exc).lower()
+
+
 def execute(sql, params=()):
     """Run a statement and commit."""
+    for attempt in range(2):
+        try:
+            return _execute_once(sql, params)
+        except Exception as e:
+            if attempt == 0 and _is_connection_error(e):
+                logger.info("connection error, rebuilding pool and retrying")
+                _invalidate_pool()
+                time.sleep(0.3)
+                continue
+            raise
+
+
+def _execute_once(sql, params=()):
     if IS_PG:
         pool = _get_pool()
         conn = pool.getconn()
@@ -215,6 +244,19 @@ def execute(sql, params=()):
 
 def query_all(sql, params=()):
     """Return a list of dict rows."""
+    for attempt in range(2):
+        try:
+            return _query_all_once(sql, params)
+        except Exception as e:
+            if attempt == 0 and _is_connection_error(e):
+                logger.info("connection error, rebuilding pool and retrying")
+                _invalidate_pool()
+                time.sleep(0.3)
+                continue
+            raise
+
+
+def _query_all_once(sql, params=()):
     if IS_PG:
         pool = _get_pool()
         conn = pool.getconn()
@@ -381,11 +423,56 @@ def new_sid():
 
 
 def db_healthy():
-    try:
-        query_one("SELECT 1 AS ok")
-        return True
-    except Exception:
-        return False
+    """True when a trivial query succeeds.
+
+    Retried because a single dropped connection (idle timeout, DB restart)
+    is transient. A failed attempt invalidates the pool so the next call
+    rebuilds it instead of being stuck on dead connections.
+    """
+    for attempt in range(2):
+        try:
+            query_one("SELECT 1 AS ok")
+            if LAST_DB_ERROR["error"] is not None:
+                logger.info("database connection recovered")
+            LAST_DB_ERROR["error"] = None
+            LAST_DB_ERROR["since"] = None
+            return True
+        except Exception as e:
+            message = "%s: %s" % (type(e).__name__, e)
+            if LAST_DB_ERROR["error"] != message:
+                logger.warning("database unreachable: %s", message)
+            LAST_DB_ERROR["error"] = message
+            if LAST_DB_ERROR["since"] is None:
+                LAST_DB_ERROR["since"] = time.time()
+            _invalidate_pool()
+            if attempt == 0:
+                time.sleep(0.5)
+    return False
+
+
+LAST_DB_ERROR = {"error": None, "since": None}
+
+
+def last_db_error():
+    return LAST_DB_ERROR["error"]
+
+
+def db_outage_seconds():
+    """How long the database has been continuously unreachable (0 = healthy)."""
+    since = LAST_DB_ERROR.get("since")
+    if not since or LAST_DB_ERROR.get("error") is None:
+        return 0
+    return time.time() - since
+
+
+def _invalidate_pool():
+    """Discard the cached pool so it is rebuilt on the next query."""
+    global _pool, _pool_error_at
+    with _pool_lock:
+        if _pool is not None:
+            _close_pool(_pool)
+        _pool = None
+        _pool_error_at = 0.0
 
 
 SCHEMA_STATE = {"ready": False}
@@ -410,7 +497,13 @@ def cleanup_expired_sessions(max_age_hours=24):
 
 
 if IS_PG:
-    init_schema_robustly()
+    logger.info("database: postgresql (pool min=%s max=%s workers=%s)",
+                PG_POOL_MIN, PG_POOL_SIZE, os.environ.get("WEB_CONCURRENCY", "?"))
+    if init_schema_robustly():
+        logger.info("schema ready")
+    else:
+        logger.warning("schema not ready yet; retrying in the background")
 else:
     init_schema()
     SCHEMA_STATE["ready"] = True
+    logger.info("database: sqlite (local development)")

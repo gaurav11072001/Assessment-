@@ -273,12 +273,22 @@ def index_role():
 def healthz():
     reachable = db.db_healthy()
     schema = db.schema_status()
-    return jsonify({
+    outage = db.db_outage_seconds()
+    body = {
         "status": "ok" if reachable else "degraded",
         "schema": schema,
         "database": "postgresql" if db.IS_PG else "sqlite",
         "workers": os.environ.get("WEB_CONCURRENCY", "1"),
-    }), (200 if reachable else 503)
+    }
+    err = db.last_db_error()
+    if err:
+        body["error"] = err
+        body["outage_seconds"] = int(outage)
+
+    # Only report 503 once the database has been down for a while. A brief
+    # blip must not fail Render's deploy health check or restart the app.
+    degraded = (not reachable) and outage > 60
+    return jsonify(body), (503 if degraded else 200)
 
 
 @app.after_request
