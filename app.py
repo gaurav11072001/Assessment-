@@ -147,31 +147,12 @@ def find_registration(full_name, email):
     )
 
 
-def get_registration(email):
-    if not email:
-        return None
-    row = db.query_one(
-        "SELECT * FROM registrations WHERE lower(email) = lower(?)", (email,)
-    )
-    if not row:
-        return None
-    return dict(row)
-
-
-def registration_status(email):
-    reg = get_registration(email)
-    if not reg:
-        return None
-    return reg.get("status") or "approved"
-
-
 def create_registration(full_name, email):
     try:
         db.insert_ignore(
             "registrations",
-            ["full_name", "email", "status", "created_at"],
-            [full_name, email, "pending",
-             datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+            ["full_name", "email", "created_at"],
+            [full_name, email, datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
         )
         return db.query_one(
             "SELECT id FROM registrations WHERE lower(email) = lower(?)", (email,)
@@ -334,39 +315,7 @@ def index():
 
 @app.route("/role-select")
 def index_role():
-    email = session.get("student_email")
-    status = registration_status(email)
-    if email and status != "approved":
-        return redirect(url_for("pending"))
-    return render_template("old_index.html", roles=ROLES,
-                           verified=(status == "approved"))
-
-
-@app.route("/pending")
-def pending():
-    """Waiting room for students whose registration is not verified yet."""
-    email = session.get("student_email")
-    if not email:
-        return redirect(url_for("register"))
-    reg = get_registration(email)
-    if not reg:
-        session.pop("student_email", None)
-        session.pop("student_name", None)
-        return redirect(url_for("register"))
-
-    status = reg.get("status") or "approved"
-    next_role = request.args.get("next", "")
-    if status == "approved":
-        if next_role in QUESTIONS:
-            return redirect(url_for("start", role=next_role))
-        return redirect(url_for("index_role"))
-
-    return render_template("pending.html",
-                           student_name=reg["full_name"],
-                           student_email=reg["email"],
-                           status=status,
-                           rejected=(status == "rejected"),
-                           next_role=next_role)
+    return render_template("old_index.html", roles=ROLES)
 
 
 @app.route("/ping")
@@ -460,11 +409,9 @@ def register():
                 session["student_email"] = email
                 session["student_name"] = name
                 session.modified = True
-                if registration_status(email) == "approved":
-                    if next_role in QUESTIONS:
-                        return redirect(url_for("start", role=next_role))
-                    return redirect(url_for("index_role"))
-                return redirect(url_for("pending", next=next_role or None))
+                if next_role in QUESTIONS:
+                    return redirect(url_for("start", role=next_role))
+                return redirect(url_for("index_role"))
     return render_template("register.html", error=error, next_role=next_role,
                            student_name=session.get("student_name", ""),
                            student_email=session.get("student_email", ""))
@@ -498,8 +445,6 @@ def resume():
                 )
                 if latest:
                     session["role"] = latest["role"]
-                if registration_status(row["email"]) != "approved":
-                    return redirect(url_for("pending", next=next_role or None))
                 if latest:
                     session.clear()
                     return redirect(url_for("done"))
@@ -520,10 +465,6 @@ def start(role):
     email = session.get("student_email")
     if not email:
         return redirect(url_for("register", next=role))
-
-    # Admin must verify the candidate before the exam unlocks.
-    if registration_status(email) != "approved":
-        return redirect(url_for("pending", next=role))
 
     # A submitted exam can never be taken again.
     if get_attempt(email, role):
@@ -594,9 +535,6 @@ def quiz():
         return redirect(url_for("index"))
 
     role = exam["role"]
-
-    if registration_status(exam["student_email"]) != "approved":
-        return redirect(url_for("pending"))
 
     # Locked: this exam was already submitted.
     if get_attempt(exam["student_email"], role):
@@ -734,38 +672,20 @@ def admin_logout():
 def admin_dashboard():
     attempts = db.query_all("SELECT * FROM attempts ORDER BY submitted_at DESC")
     registrations = db.query_all("SELECT * FROM registrations ORDER BY created_at DESC")
-    pending_regs = [r for r in registrations
-                    if (dict(r).get("status") or "approved") == "pending"]
 
     total_students = len(registrations)
-    approved = sum(1 for r in registrations
-                   if (dict(r).get("status") or "approved") == "approved")
     submitted = len(attempts)
     avg = round(sum(a["percentage"] for a in attempts) / submitted) if submitted else 0
+    pending = max(0, total_students - submitted)
 
     return render_template("admin_dashboard.html",
                            attempts=attempts,
                            registrations=registrations,
-                           pending_regs=pending_regs,
                            total_students=total_students,
-                           approved=approved,
                            submitted=submitted,
+                           pending=pending,
                            avg_score=avg,
                            ROLES=ROLES)
-
-
-@app.route("/admin/registration/<int:reg_id>/approve", methods=["POST"])
-@admin_required
-def admin_approve(reg_id):
-    db.execute("UPDATE registrations SET status = 'approved' WHERE id = ?", (reg_id,))
-    return redirect(url_for("admin_dashboard"))
-
-
-@app.route("/admin/registration/<int:reg_id>/reject", methods=["POST"])
-@admin_required
-def admin_reject(reg_id):
-    db.execute("UPDATE registrations SET status = 'rejected' WHERE id = ?", (reg_id,))
-    return redirect(url_for("admin_dashboard"))
 
 
 @app.route("/admin/attempt/<int:attempt_id>")

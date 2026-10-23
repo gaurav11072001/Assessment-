@@ -313,7 +313,6 @@ def init_schema():
             id {ID_PK},
             full_name TEXT NOT NULL,
             email TEXT NOT NULL,
-            status TEXT NOT NULL DEFAULT 'pending',
             created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         )
         """,
@@ -370,28 +369,6 @@ def init_schema():
         except Exception:
             # Concurrent CREATE ... IF NOT EXISTS can race across workers.
             pass
-
-    # Databases created before admin verification: add the column and
-    # grandfather everyone who registered earlier as approved.
-    if not _has_column("registrations", "status"):
-        try:
-            execute("ALTER TABLE registrations "
-                    "ADD COLUMN status TEXT NOT NULL DEFAULT 'approved'")
-        except Exception:
-            pass
-
-
-def _has_column(table, column):
-    try:
-        if IS_PG:
-            return query_one(
-                "SELECT 1 AS x FROM information_schema.columns "
-                "WHERE table_name = ? AND column_name = ?", (table, column)
-            ) is not None
-        rows = query_all("PRAGMA table_info(%s)" % table)
-        return any(row["name"] == column for row in rows)
-    except Exception:
-        return True
 
 
 def _schema_ready():

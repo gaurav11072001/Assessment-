@@ -50,23 +50,6 @@ r = s.post(BASE + "/register", data={"name": "Live Smoke Test",
                                      "email": "smoke.live@example.com",
                                      "next": "python"}, timeout=60)
 print("register :", r.status_code, r.headers.get("Location"))
-r = s.get(BASE + "/pending", timeout=60)
-print("pending  :", r.status_code, "waiting_page=%s" % ("Awaiting Admin Verification" in r.text))
-
-print()
-print("--- admin verification ---")
-a = requests.Session()
-a.post(BASE + "/admin/login",
-       data={"username": os.environ.get("ADMIN_USER", "admin"),
-             "password": os.environ.get("ADMIN_PASSWORD", "admin123")},
-       timeout=60)
-dash = a.get(BASE + "/admin", timeout=60).text
-m = re.search(r"<td>(\d+)</td>\s*<td[^>]*>Live Smoke Test</td>", dash)
-if m:
-    a.post(BASE + "/admin/registration/%s/approve" % m.group(1), timeout=60)
-    print("approved :", m.group(1))
-else:
-    print("approved : skipped (no pending row / bad admin credentials)")
 
 print()
 print("--- exam ---")

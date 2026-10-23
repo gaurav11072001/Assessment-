@@ -40,8 +40,6 @@ print()
 print("=== 3. after a full exam ===")
 s = appmod.app.test_client()
 s.post("/register", data={"name": "Diag", "email": "diag@example.com"})
-db.execute("UPDATE registrations SET status = 'approved' "
-           "WHERE lower(email) = lower(?)", ("diag@example.com",))
 s.get("/start/python")
 for _ in range(60):
     s.post("/quiz", data={"answer": "x"})
